@@ -12,6 +12,10 @@ import android.widget.CalendarView;
 import android.widget.Toast;
 
 import com.example.home.taskmanager.R;
+import com.example.home.taskmanager.listeners.CalendarActivityListener;
+
+import java.util.Calendar;
+import java.util.Date;
 
 
 /**
@@ -22,6 +26,7 @@ public class CalendarFragment extends Fragment implements CalendarView.OnDateCha
 
     private CalendarView calendarView;
     private Context mContext;
+    private CalendarActivityListener mCalendarActivityListener;
 
     public static CalendarFragment newInstance(){
         return new CalendarFragment();
@@ -52,5 +57,29 @@ public class CalendarFragment extends Fragment implements CalendarView.OnDateCha
     @Override
     public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
         Toast.makeText(mContext, dayOfMonth + "/" + month + "/" + year, Toast.LENGTH_LONG).show();
+
+        Date date = new Date();
+        date.setTime(Calendar.getInstance().getTimeInMillis());
+
+        mCalendarActivityListener.onDateClick(date);
+    }
+
+    @Override
+    public void onAttach(Context  context){
+        super.onAttach(context);
+
+        if(context instanceof CalendarActivityListener)
+            mCalendarActivityListener = (CalendarActivityListener) context;
+        else {
+            throw new RuntimeException(context.toString()
+                    + " must implement CalendarActivityListener");
+        }
+
+    }
+
+    @Override
+    public void onDetach(){
+        super.onDetach();
+        mCalendarActivityListener = null;
     }
 }

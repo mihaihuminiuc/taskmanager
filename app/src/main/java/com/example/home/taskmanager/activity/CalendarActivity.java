@@ -1,16 +1,17 @@
 package com.example.home.taskmanager.activity;
 
 import android.app.FragmentTransaction;
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
 import com.example.home.taskmanager.R;
 import com.example.home.taskmanager.fragments.CalendarFragment;
-import com.example.home.taskmanager.listeners.MainActivityListener;
+import com.example.home.taskmanager.listeners.CalendarActivityListener;
 
 import java.util.Date;
 
-public class MainActivity extends AppCompatActivity implements MainActivityListener {
+public class CalendarActivity extends AppCompatActivity implements CalendarActivityListener {
 
     private FragmentTransaction mFragmentTransaction;
 
@@ -19,7 +20,7 @@ public class MainActivity extends AppCompatActivity implements MainActivityListe
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.calendar_activity);
 
         initFragments();
         initUI();
@@ -46,6 +47,7 @@ public class MainActivity extends AppCompatActivity implements MainActivityListe
 
     @Override
     public void onDateClick(Date date) {
-
+        Intent intent = new Intent(getApplicationContext(), AlarmActivity.class);
+        startActivity(intent);
     }
 }
