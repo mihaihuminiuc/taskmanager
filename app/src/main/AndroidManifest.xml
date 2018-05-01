@@ -2,11 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.home.taskmanager">
 
-    <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
         android:allowBackup="true"
@@ -16,32 +13,28 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activity.CalendarActivity">
+
+        <activity
+            android:name=".activity.AlarmActivity"
+            android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <meta-data android:name="DATABASE" android:value="tm.db" />
-        <meta-data android:name="VERSION" android:value="1" />
-        <meta-data android:name="QUERY_LOG" android:value="true" />
-        <meta-data android:name="DOMAIN_PACKAGE_NAME" android:value="com.example.home.taskmanager.model" />
+        <activity android:name=".activity.AddAlarmActivity" android:windowSoftInputMode="stateHidden"/>
+        <activity android:name=".activity.PreferencesActivity"/>
 
-        <activity android:name=".activity.AlarmActivity"/>
-        <activity android:name=".activity.AlarmNotificationActivity"/>
-        <activity android:name=".activity.Preferences"/>
-
-        <receiver
-            android:name=".receiver.AlarmReceiver"/>
-
-        <receiver android:name=".receiver.BootCompletedReceiver">
+        <receiver android:name=".setter.AlarmSetter">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </receiver>
+        <receiver android:name=".receiver.AlarmReceiver"/>
+
+        <service android:name=".service.AlarmService"/>
+        <activity android:name=".activity.AlarmNotification"/>
     </application>
 
 </manifest>

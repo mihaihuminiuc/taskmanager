@@ -1,35 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">TaskManager</string>
-    <string name="dots_text">...</string>
-    <string name="dismiss_alarm_button_text">dismiss</string>
-    <string name="add_alarm_button_text">Add alarm</string>
-    <string name="alarm_title_text">Title</string>
-    <string name="alarm_checkbox_text">Alarm</string>
-    <string name="button_done_text">Done</string>
-    <string name="button_cancel_text">Cancel</string>
 
+    <string name="app_name">Remind Me</string>
 
-    <string-array name="occurence">
-        <item>Once</item>
-        <item>Weekly</item>
-    </string-array>
-
-    <string-array name="pref_alarm_play_time_entries">
-        <item>10 seconds</item>
-        <item>30 seconds</item>
-        <item>1 minute</item>
-        <item>2 minutes</item>
-        <item>3 minutes</item>
-        <item>5 minutes</item>
-    </string-array>
-
-    <string-array name="pref_alarm_play_time_values">
-        <item>10</item>
-        <item>30</item>
-        <item>60</item>
-        <item>120</item>
-        <item>180</item>
-        <item>300</item>
-    </string-array>
+    <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
+    <string name="delete_repeating">Delete repeating</string>
+    <string name="delete_all">Delete all</string>
 
 </resources>

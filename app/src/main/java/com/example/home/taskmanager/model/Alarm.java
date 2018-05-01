@@ -1,107 +1,224 @@
 package com.example.home.taskmanager.model;
 
-import android.content.Intent;
-import android.os.Bundle;
-import android.os.Parcel;
-import android.os.Parcelable;
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 
-import com.example.home.taskmanager.activity.AlarmNotificationActivity;
-import com.orm.SugarRecord;
+import com.example.home.taskmanager.util.CommonUtils;
 
+import java.util.List;
 
-public class Alarm extends SugarRecord implements Parcelable {
+public class Alarm extends AbstractModel {
 
-    protected Alarm(Parcel in) {
-        mTitle = in.readString();
-        mDate = in.readLong();
-        mEnabled = in.readByte() != 0;
-        mOccurrence = in.readInt();
-        mDays = in.readInt();
+    public static final String TABLE_NAME = "alarm";
+    public static final String COL_ID = AbstractModel.COL_ID;
+    public static final String COL_CREATEDTIME = "created_time";
+    public static final String COL_MODIFIEDTIME = "modified_time";
+    public static final String COL_NAME = "name";
+    public static final String COL_FROMDATE = "from_date";
+    public static final String COL_TODATE = "to_date";
+    public static final String COL_RULE = "rule";
+    public static final String COL_INTERVAL = "interval";
+    public static final String COL_SOUND = "sound";
+
+    public static final String HIGH = "H";
+    public static final String MED = "M";
+    public static final String LOW = "L";
+
+    static String getSql() {
+        return CommonUtils.concat("CREATE TABLE ", TABLE_NAME, " (",
+                AbstractModel.getSql(),
+                COL_CREATEDTIME, " INTEGER, ",
+                COL_MODIFIEDTIME, " INTEGER, ",
+                COL_NAME, " TEXT, ",
+                COL_FROMDATE, " DATE, ",
+                COL_TODATE, " DATE, ",
+                COL_RULE, " TEXT, ",
+                COL_INTERVAL, " TEXT, ",
+                COL_SOUND, " INTEGER",
+                ");");
     }
 
-    public static final Creator<Alarm> CREATOR = new Creator<Alarm>() {
-        @Override
-        public Alarm createFromParcel(Parcel in) {
-            return new Alarm(in);
+    long save(SQLiteDatabase db) {
+        ContentValues cv = new ContentValues();
+        long now = System.currentTimeMillis();
+        cv.put(COL_CREATEDTIME, now);
+        cv.put(COL_MODIFIEDTIME, now);
+        cv.put(COL_NAME, name==null ? "" : name);
+        cv.put(COL_FROMDATE, fromDate);
+        cv.put(COL_TODATE, toDate);
+        cv.put(COL_RULE, rule);
+        cv.put(COL_INTERVAL, interval);
+        cv.put(COL_SOUND, sound ? 1 : 0);
+
+        return db.insert(TABLE_NAME, null, cv);
+    }
+
+    boolean update(SQLiteDatabase db) {
+        ContentValues cv = new ContentValues();
+        super.update(cv);
+        cv.put(COL_MODIFIEDTIME, System.currentTimeMillis());
+        if (name != null)
+            cv.put(COL_NAME, name);
+        if (fromDate != null)
+            cv.put(COL_FROMDATE, fromDate);
+        if (toDate != null)
+            cv.put(COL_TODATE, toDate);
+        if (rule != null)
+            cv.put(COL_RULE, rule);
+        if (interval != null)
+            cv.put(COL_INTERVAL, interval);
+        if (sound != null)
+            cv.put(COL_SOUND, sound ? 1 : 0);
+
+        return db.update(TABLE_NAME, cv, COL_ID+" = ?", new String[]{String.valueOf(id)})
+                == 1 ? true : false;
+    }
+
+    public boolean load(SQLiteDatabase db) {
+        Cursor cursor = db.query(TABLE_NAME, null, COL_ID+" = ?", new String[]{String.valueOf(id)}, null, null, null);
+        try {
+            if (cursor.moveToFirst()) {
+                reset();
+                super.load(cursor);
+                createdTime = cursor.getLong(cursor.getColumnIndex(COL_CREATEDTIME));
+                modifiedTime = cursor.getLong(cursor.getColumnIndex(COL_MODIFIEDTIME));
+                name = cursor.getString(cursor.getColumnIndex(COL_NAME));
+                fromDate = cursor.getString(cursor.getColumnIndex(COL_FROMDATE));
+                toDate = cursor.getString(cursor.getColumnIndex(COL_TODATE));
+                rule = cursor.getString(cursor.getColumnIndex(COL_RULE));
+                interval = cursor.getString(cursor.getColumnIndex(COL_INTERVAL));
+                sound = cursor.getInt(cursor.getColumnIndex(COL_SOUND)) == 1 ? true : false;
+                return true;
+            }
+            return false;
+        } finally {
+            cursor.close();
         }
+    }
 
-        @Override
-        public Alarm[] newArray(int size) {
-            return new Alarm[size];
+    public static Cursor list(SQLiteDatabase db) {
+        String[] columns = {COL_ID, COL_NAME};
+
+        return db.query(TABLE_NAME, columns, null, null, null, null, COL_CREATEDTIME+" DESC");
+    }
+
+    public boolean delete(SQLiteDatabase db) {
+        boolean status = false;
+        String[] whereArgs = new String[]{String.valueOf(id)};
+
+        db.beginTransaction();
+        try {
+            db.delete(AlarmTime.TABLE_NAME, AlarmTime.COL_ALARMID+" = ?", whereArgs);
+            status = db.delete(TABLE_NAME, COL_ID+" = ?", whereArgs)
+                    == 1 ? true : false;
+            db.setTransactionSuccessful();
+        } catch (Exception e) {
+        } finally {
+            db.endTransaction();
         }
-    };
-
-    public String getmTitle() {
-        return mTitle;
+        return status;
     }
 
-    public void setmTitle(String mTitle) {
-        this.mTitle = mTitle;
+    //--------------------------------------------------------------------------
+
+    private long createdTime;
+    private long modifiedTime;
+    private String name;
+    private String fromDate;
+    private String toDate;
+    private String rule;
+    private String interval;
+    private Boolean sound = Boolean.FALSE;
+    private List<AlarmTime> occurrences;
+
+    public void reset() {
+        super.reset();
+        createdTime = 0;
+        modifiedTime = 0;
+        name = null;
+        fromDate = null;
+        toDate = null;
+        rule = null;
+        interval = null;
+        sound = Boolean.FALSE;
+        occurrences = null;
     }
 
-    public long getmDate() {
-        return mDate;
+    public long getCreatedTime() {
+        return createdTime;
+    }
+    public void setCreatedTime(long createdTime) {
+        this.createdTime = createdTime;
+    }
+    public long getModifiedTime() {
+        return modifiedTime;
+    }
+    public void setModifiedTime(long modifiedTime) {
+        this.modifiedTime = modifiedTime;
+    }
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+    public String getFromDate() {
+        return fromDate;
+    }
+    public void setFromDate(String fromDate) {
+        this.fromDate = fromDate;
+    }
+    public String getToDate() {
+        return toDate;
+    }
+    public void setToDate(String toDate) {
+        this.toDate = toDate;
+    }
+    public String getRule() {
+        return rule;
+    }
+    public void setRule(String rule) {
+        this.rule = rule;
+    }
+    public String getInterval() {
+        return interval;
+    }
+    public void setInterval(String interval) {
+        this.interval = interval;
+    }
+    public Boolean getSound() {
+        return sound;
+    }
+    public void setSound(Boolean sound) {
+        this.sound = sound;
+    }
+    public List<AlarmTime> getOccurrences() {
+        return occurrences;
+    }
+    public void setOccurrences(List<AlarmTime> occurrences) {
+        this.occurrences = occurrences;
     }
 
-    public void setmDate(long mDate) {
-        this.mDate = mDate;
+    public Alarm() {}
+
+    public Alarm(long id) {
+        this.id = id;
     }
-
-    public boolean ismEnabled() {
-        return mEnabled;
-    }
-
-    public void setmEnabled(boolean mEnabled) {
-        this.mEnabled = mEnabled;
-    }
-
-    public int getmOccurrence() {
-        return mOccurrence;
-    }
-
-    public void setmOccurrence(int mOccurrence) {
-        this.mOccurrence = mOccurrence;
-    }
-
-    public int getmDays() {
-        return mDays;
-    }
-
-    public void setmDays(int mDays) {
-        this.mDays = mDays;
-    }
-
-    public Alarm(){}
-
-    private String mTitle;
-    private long mDate;
-    private boolean mEnabled;
-    private int mOccurrence;
-    private int mDays;
 
     @Override
-    public int describeContents() {
-        return 0;
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if ((obj == null) || (obj.getClass() != this.getClass()))
+            return false;
+
+        return id == ((Alarm)obj).id;
     }
 
     @Override
-    public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeString(mTitle);
-        parcel.writeLong(mDate);
-        parcel.writeByte((byte) (mEnabled ? 1 : 0));
-        parcel.writeInt(mOccurrence);
-        parcel.writeInt(mDays);
+    public int hashCode() {
+        return 1;
     }
 
-    public static Alarm fromIntent(Intent intent){
-        return intent.getExtras().getParcelable(AlarmNotificationActivity.MODE_NAME);
-    }
-
-    public static void toIntent(Intent intent, Alarm alarm){
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        Bundle bundle = new Bundle();
-        bundle.putParcelable(AlarmNotificationActivity.MODE_NAME,alarm);
-        intent.putExtra(AlarmNotificationActivity.MODE_NAME,bundle);
-    }
 }
-
