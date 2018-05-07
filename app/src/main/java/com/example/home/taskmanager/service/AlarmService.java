@@ -6,11 +6,8 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.database.Cursor;
 
-import com.example.home.taskmanager.TaskManager;
-import com.example.home.taskmanager.model.Alarm;
-import com.example.home.taskmanager.model.AlarmMsg;
+import com.example.home.taskmanager.model.AlarmModel;
 import com.example.home.taskmanager.receiver.AlarmReceiver;
 import com.example.home.taskmanager.util.CommonUtils;
 
@@ -35,74 +32,39 @@ public class AlarmService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
         String action = intent.getAction();
-        String alarmId = intent.getStringExtra(AlarmMsg.COL_ALARMID);
-        String alarmMsgId = intent.getStringExtra(AlarmMsg.COL_ID);
-        String startTime = intent.getStringExtra(Alarm.COL_FROMDATE);
-        String endTime = intent.getStringExtra(Alarm.COL_TODATE);
+        long alarmId = intent.getLongExtra(CommonUtils.ALARM_MODEL_ID, 0);
 
         if (matcher.matchAction(action)) {
+
             if (POPULATE.equals(action)) {
-                TaskManager.dbHelper.populate(Long.parseLong(alarmId), TaskManager.db);
                 execute(CREATE, alarmId);
             }
 
             if (CREATE.equals(action)) {
-                execute(CREATE, alarmId, alarmMsgId, startTime, endTime);
+                execute(CREATE, alarmId);
             }
 
             if (CANCEL.equals(action)) {
-                execute(CANCEL, alarmId, alarmMsgId, startTime, endTime);
-                TaskManager.dbHelper.shred(TaskManager.db);
+                execute(CREATE, alarmId);
             }
         }
     }
 
-    /**
-     * @param action
-     * @param args {alarmId, alarmMsgId, startTime, endTime}
-     */
-    private void execute(String action, String... args) {
-        Intent i;
-        PendingIntent pi;
-        AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        Cursor c;
+    private void execute(String action, long alarmId) {
+        Intent mIntent;
+        PendingIntent mPendingIntent;
+        AlarmManager mAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        long time;
 
-        String alarmId = (args!=null && args.length>0) ? args[0] : null;
-        String alarmMsgId = (args!=null && args.length>1) ? args[1] : null;
-        String startTime = (args!=null && args.length>2) ? args[2] : null;
-        String endTime = (args!=null && args.length>3) ? args[3] : null;
+        mIntent = new Intent(this, AlarmReceiver.class);
+        mIntent.putExtra(CommonUtils.ALARM_MODEL_ID, AlarmModel.findById(AlarmModel.class,alarmId).getId());
 
-        String status = CANCEL.equals(action) ? AlarmMsg.CANCELLED : AlarmMsg.ACTIVE;
+        mPendingIntent = PendingIntent.getBroadcast(this, 0, mIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        if (alarmMsgId != null) {
-            c = TaskManager.db.query(AlarmMsg.TABLE_NAME, null, AlarmMsg.COL_ID+" = ?", new String[]{alarmMsgId}, null, null, null);
-
-        } else {
-            c = AlarmMsg.list(TaskManager.db, alarmId, startTime, endTime, status);
+        time = AlarmModel.findById(AlarmModel.class,alarmId).getTime();
+        if (CREATE.equals(action) && mAlarmManager!=null) {
+            mAlarmManager.set(AlarmManager.RTC_WAKEUP, time, mPendingIntent);
         }
-
-        if (c.moveToFirst()) {
-            long now = System.currentTimeMillis();
-            long time, diff;
-
-            do {
-                i = new Intent(this, AlarmReceiver.class);
-                i.putExtra(AlarmMsg.COL_ID, c.getLong(c.getColumnIndex(AlarmMsg.COL_ID)));
-                i.putExtra(AlarmMsg.COL_ALARMID, c.getLong(c.getColumnIndex(AlarmMsg.COL_ALARMID)));
-
-                pi = PendingIntent.getBroadcast(this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
-
-                time = c.getLong(c.getColumnIndex(AlarmMsg.COL_DATETIME));
-                diff = time-now + (long) CommonUtils.MIN;
-                if (CREATE.equals(action)) {
-                    if (diff > 0 && diff < CommonUtils.YEAR)
-                        am.set(AlarmManager.RTC_WAKEUP, time, pi);
-                } else if (CANCEL.equals(action)) {
-                    am.cancel(pi);
-                }
-            } while(c.moveToNext());
-        }
-        c.close();
     }
 
 }

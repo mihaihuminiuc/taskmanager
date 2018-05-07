@@ -1,71 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent" >
+	android:padding="@dimen/alarm_notification_text_size"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
 
 	<LinearLayout
-	    android:layout_width="fill_parent"
+	    android:layout_width="match_parent"
 	    android:layout_height="wrap_content"
 	    android:orientation="vertical"
+		android:gravity="center"
 		>
-	
+
+		<TextView
+			android:textSize="@dimen/text_big"
+			android:gravity="center"
+			android:text="@string/add_alarm"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content" />
+
 	    <EditText
+			android:padding="@dimen/alarm_notification_text_size"
 	        android:id="@+id/msg_et"
-	        android:layout_width="fill_parent"
+	        android:layout_width="match_parent"
 	        android:layout_height="wrap_content"
 	        android:ems="10"
 	        android:maxLines="2"
-	        android:hint="Message" >
+	        android:hint="@string/alarm_text_hint" >
 	    </EditText>
 	    
 	    <CheckBox
-	        android:id="@+id/sound_cb"
+			android:padding="@dimen/padding_small"
+			android:id="@+id/sound_cb"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
-	        android:text="Play ringtone" />    
-	
-	    <ToggleButton
-	        android:id="@+id/toggleButton1"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:layout_gravity="center_horizontal"
-	        android:onClick="onClick"
-	        android:background="@drawable/toggle_button_selector"
-	        android:padding="5dip"       
-	        android:textColor="@android:color/black"
-	        android:textOn=" Once    Repeat "
-	        android:textOff=" Once    Repeat " />
-	
-	    <ViewSwitcher
-	        android:id="@+id/view_switcher"
-	        android:layout_width="fill_parent"
-	        android:layout_height="wrap_content"
-	        android:paddingTop="10dip"
-	        android:paddingLeft="5dip"
-	        android:paddingRight="5dip" >
-	        
-	        <include layout="@layout/include_onetime" 
-	            android:layout_width="fill_parent" 
-	            android:layout_height="fill_parent" />        
-	        
-	        <include layout="@layout/include_repeating" 
-	            android:layout_width="fill_parent" 
-	            android:layout_height="fill_parent" />
-	        
-	    </ViewSwitcher>
+	        android:text="@string/play_ringtone_text" />
 
-	    <LinearLayout
-	        android:layout_width="fill_parent"
-	        android:layout_height="wrap_content"
-	        android:background="#5c755e"
-	        android:gravity="right" >
-			<ImageButton
-			    android:layout_width="wrap_content"
-			    android:layout_height="wrap_content"
-			    android:background="@null"
-			    android:onClick="create"
-			    android:src="@android:drawable/ic_menu_add" />
-	    </LinearLayout>	    
+		<!--
+		<LinearLayout
+			android:padding="@dimen/padding_small"
+			android:orientation="horizontal"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			>
+
+			<Button
+				android:text="@string/once_text_button"
+				android:id="@+id/once_button"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content" />
+
+			<Button
+				android:text="@string/repeat_text_button"
+				android:id="@+id/repeat_button"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content" />
+
+		</LinearLayout>
+	-->
+		<include layout="@layout/time_layout"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent" />
+
+		<Button
+			android:background="@color/active"
+			android:paddingTop="@dimen/padding_small"
+			android:id="@+id/add_alarm"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/add_alarm_text_button" />
 	
 	</LinearLayout>
 

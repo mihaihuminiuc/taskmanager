@@ -27,6 +27,7 @@ import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
+import android.text.style.TabStopSpan;
 
 import com.example.home.taskmanager.R;
 import com.example.home.taskmanager.TaskManager;
@@ -58,10 +59,10 @@ public class PreferencesActivity extends PreferenceActivity implements SharedPre
   }
 
   private void updatePreferences() {
-    updatePreference(TaskManager.TIME_OPTION);
-    updatePreference(TaskManager.DATE_RANGE);
-    updatePreference(TaskManager.DATE_FORMAT);
+    updatePreference(TaskManager.TIME_FORMAT);
+    updatePreference(TaskManager.VIBRATE_PREF);
     updatePreference(TaskManager.RINGTONE_PREF);
+    updatePreference(TaskManager.RING_TIME);
   }
 
   private void updatePreference(String key){
@@ -69,6 +70,7 @@ public class PreferencesActivity extends PreferenceActivity implements SharedPre
 
     if (pref instanceof ListPreference) {
       ListPreference listPref = (ListPreference) pref;
+
       pref.setSummary(listPref.getEntry());
       return;
     }

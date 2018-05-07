@@ -7,5 +7,17 @@
     <string name="delete">Delete</string>
     <string name="delete_repeating">Delete repeating</string>
     <string name="delete_all">Delete all</string>
+    <string name="var_bundle_calendar">mCalendar</string>
+    <string name="alarm_activity_menu_title">Choose an Option</string>
+    <string name="alarm_list_empty">No data</string>
+    <string name="date_text_button">DATE</string>
+    <string name="time_text_button">TIME</string>
+    <string name="alarm_text_hint">Message</string>
+    <string name="play_ringtone_text">Play ringtone</string>
+    <string name="once_text_button">ONCE</string>
+    <string name="repeat_text_button">REPEAT</string>
+    <string name="add_alarm_text_button">ADD ALARM</string>
+    <string name="add_alarm">ADD ALARM</string>
+    <string name="default_date_format">yyyy-mm-dd hh:mm</string>
 
 </resources>

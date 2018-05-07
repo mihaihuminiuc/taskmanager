@@ -11,44 +11,38 @@ import android.support.v4.app.NotificationCompat;
 import com.example.home.taskmanager.R;
 import com.example.home.taskmanager.TaskManager;
 import com.example.home.taskmanager.activity.AlarmNotification;
-import com.example.home.taskmanager.model.Alarm;
-import com.example.home.taskmanager.model.AlarmMsg;
+import com.example.home.taskmanager.model.AlarmModel;
+import com.example.home.taskmanager.util.CommonUtils;
 
 public class AlarmReceiver extends BroadcastReceiver {
 
-//	private static final String TAG = "AlarmReceiver";
-
     @Override
     public void onReceive(Context context, Intent intent) {
-        long alarmMsgId = intent.getLongExtra(AlarmMsg.COL_ID, -1);
-        long alarmId = intent.getLongExtra(AlarmMsg.COL_ALARMID, -1);
+        long alarmId = intent.getLongExtra(CommonUtils.ALARM_MODEL_ID, -1);
 
-        AlarmMsg alarmMsg = new AlarmMsg(alarmMsgId);
-        alarmMsg.setStatus(AlarmMsg.EXPIRED);
-        alarmMsg.persist(TaskManager.db);
-
-        Alarm alarm = new Alarm(alarmId);
-        alarm.load(TaskManager.db);
+        AlarmModel alarmModel = AlarmModel.findById(AlarmModel.class,alarmId);
 
         NotificationManager notificationManager = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
         Notification notification;
         PendingIntent activity;
 
         Intent newIntent = new Intent(context, AlarmNotification.class);
-        newIntent.putExtra("ALARM_NAME",alarm.getName());
+        newIntent.putExtra("ALARM_NAME",alarmModel.getMessage());
+        newIntent.putExtra("ALARM_SOUND",alarmModel.isSound());
+        newIntent.putExtra("ALARM_VIBRATE", TaskManager.isVibrate());
         context.startActivity(newIntent);
 
-        activity = PendingIntent.getActivity(context, (int)alarm.getId(), newIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        activity = PendingIntent.getActivity(context, (int) alarmId, newIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
         notification = builder
                 .setContentIntent(activity)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setAutoCancel(true)
-                .setContentTitle("Missed alarm: " + alarm.getName())
+                .setContentTitle("Missed alarm: " + alarmModel.getMessage())
                 .build();
 
-        notificationManager.notify((int)alarm.getId(), notification);
+        notificationManager.notify((int) alarmId, notification);
     }
 
 }

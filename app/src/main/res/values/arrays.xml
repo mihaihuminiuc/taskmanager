@@ -10,7 +10,6 @@
         <item>Daily</item>
         <item>Weekly</item>
         <item>Monthly</item>
-        <!--item>Yearly</item-->
     </string-array>
 
     <string-array name="val_arr">
@@ -93,6 +92,18 @@
         <item>d MMM yyyy</item>
         <item>dd-MM-yyyy</item>
         <item>dd/MM/yy</item>
+    </string-array>
+
+    <string-array name="ring_time_arr">
+        <item>1 min</item>
+        <item>5 min</item>
+        <item>10 min</item>
+    </string-array>
+
+    <string-array name="ring_time_items">
+        <item>60000</item>
+        <item>300000</item>
+        <item>600000</item>
     </string-array>
 
 </resources>

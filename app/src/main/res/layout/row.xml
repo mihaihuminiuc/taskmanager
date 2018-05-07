@@ -1,56 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
     android:padding="10dip" >
 
-    <TextView
-        android:id="@+id/month_tv"
+    <LinearLayout
+        android:id="@+id/mont_year_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
-        android:paddingTop="6sp"
-        android:textColor="#777777"
-        android:textSize="9sp" />
+        android:layout_alignParentEnd="true"
+        android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/year_tv"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_below="@id/month_tv"
-        android:textColor="#777777"
-        android:textSize="9sp" />
+        <TextView
+            android:text="test"
+            android:id="@+id/month_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="6sp"
+            android:textColor="@android:color/black"
+            android:textSize="@dimen/text_size_medium" />
+
+        <TextView
+            android:text="test"
+            android:id="@+id/year_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/black"
+            android:textSize="@dimen/text_size_medium" />
+
+    </LinearLayout>
+
+
 
     <TextView
         android:id="@+id/date_tv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_toLeftOf="@id/year_tv"
-        android:paddingRight="1sp"
-        android:textColor="#777777"
-        android:textSize="27sp" />
+        android:layout_centerVertical="true"
+        android:layout_toStartOf="@+id/mont_year_layout"
+        android:paddingEnd="@dimen/padding_small"
+        android:text="test"
+        android:textColor="@android:color/black"
+        android:textSize="@dimen/text_big" />
 
     <TextView
+        android:text="test"
         android:id="@+id/msg_tv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:layout_toLeftOf="@id/date_tv"
-        android:textColor="#587498"
-        android:textSize="18sp" />
+        android:layout_toStartOf="@id/date_tv"
+        android:textColor="@android:color/black"
+        android:textSize="@dimen/text_size_medium" />
     
     <TextView
+        android:text="test"
         android:id="@+id/time_tv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
         android:layout_below="@id/msg_tv"
         android:paddingTop="5sp"
-        android:textColor="#777777"
-        android:textSize="12sp" />    
+        android:textColor="@android:color/black"
+        android:textSize="@dimen/text_size_medium" />
 
 </RelativeLayout>

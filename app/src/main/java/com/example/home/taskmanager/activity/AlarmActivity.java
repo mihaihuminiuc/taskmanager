@@ -2,123 +2,132 @@ package com.example.home.taskmanager.activity;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.ListActivity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Color;
-import android.graphics.Typeface;
 import android.os.Bundle;
-import android.text.TextUtils;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.ContextMenu;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.ListView;
-import android.widget.RelativeLayout;
-import android.widget.SimpleCursorAdapter;
+import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.home.taskmanager.R;
 import com.example.home.taskmanager.TaskManager;
-import com.example.home.taskmanager.model.Alarm;
-import com.example.home.taskmanager.model.AlarmMsg;
+import com.example.home.taskmanager.listadapter.AlarmViewAdapter;
+import com.example.home.taskmanager.listeners.AlarmClickListener;
+import com.example.home.taskmanager.model.AlarmModel;
 import com.example.home.taskmanager.service.AlarmService;
-import com.example.home.taskmanager.util.CommonUtils;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
-public class AlarmActivity extends ListActivity {
+public class AlarmActivity extends AppCompatActivity implements View.OnClickListener{
 
-//	private static final String TAG = "MainActivity";
+    private TextView mRangeText;
+    private ImageButton mSettingButton, mAddAlarmButton, mLeftButton, mRightButton;
 
-    private TextView headingText;
-    private TextView rangeText;
-//	private ViewSwitcher vs;
+    private RecyclerView mRecycleView;
 
-    private SQLiteDatabase db;
-    private AlertDialog disclaimer;
+    private AlarmViewAdapter alarmViewAdapter;
 
-    public final Calendar cal = Calendar.getInstance();
-    public final Date dt = new Date();
-    private String[] monthArr;
+    private Context mContext;
 
-    private Alarm alarm = new Alarm();
-    private AlarmMsg alarmMsg = new AlarmMsg();
+    private AlarmClickListener mAlarmClickListener;
+
+    private SQLiteDatabase mSqLiteDatabase;
+
+    public Calendar mCalendar;
+    public Date mDate;
+    private String[] mMonthList;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.alarm_activity);
-        findViews();
-        db = TaskManager.db;
-        monthArr = getResources().getStringArray(R.array.spinner3_arr);
 
+        mContext = this;
+
+        initVar();
+
+        initUI();
+        setupActions();
+        initDB();
+
+    }
+
+    private void initVar(){
+        mDate = new Date();
+        mCalendar = Calendar.getInstance();
+        mMonthList = getResources().getStringArray(R.array.spinner3_arr);
+    }
+
+    private void initUI() {
+        mRangeText = findViewById(R.id.range_tv);
+        mSettingButton = findViewById(R.id.settings_ib);
+        mAddAlarmButton = findViewById(R.id.add_alarm_ib);
+        mLeftButton = findViewById(R.id.left_ib);
+        mRightButton = findViewById(R.id.right_ib);
+        mRecycleView = findViewById(R.id.recycleview);
+    }
+
+    private void setupActions(){
+        mSettingButton.setOnClickListener(this);
+        mAddAlarmButton.setOnClickListener(this);
+        mLeftButton.setOnClickListener(this);
+        mRightButton.setOnClickListener(this);
+
+        //mAlarmClickListener.onItemClick();
+    }
+
+    private void initDB(){
         int r = TaskManager.getDateRange();
         switch (r) {
             case 3: // Yearly
-                cal.set(Calendar.MONTH, 0);
+                mCalendar.set(Calendar.MONTH, 0);
 
             case 2: // Monthly
-                cal.set(Calendar.DATE, 1);
+                mCalendar.set(Calendar.DATE, 1);
 
             case 1: // Weekly
-                if (r == 1) cal.set(Calendar.DATE, cal.getFirstDayOfWeek());
+                if (r == 1) mCalendar.set(Calendar.DATE, mCalendar.getFirstDayOfWeek());
 
             case 0: // Daily
-                cal.set(Calendar.HOUR_OF_DAY, 0);
-                cal.set(Calendar.MINUTE, 0);
-                cal.set(Calendar.SECOND, 0);
-                cal.set(Calendar.MILLISECOND, 0);
+                mCalendar.set(Calendar.HOUR_OF_DAY, 0);
+                mCalendar.set(Calendar.MINUTE, 0);
+                mCalendar.set(Calendar.SECOND, 0);
+                mCalendar.set(Calendar.MILLISECOND, 0);
         }
-
-        registerForContextMenu(getListView());
-
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putLong("cal", cal.getTimeInMillis());
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle state) {
-        super.onRestoreInstanceState(state);
-        cal.setTimeInMillis(state.getLong("cal"));
-    }
-
-    private void findViews() {
-        headingText = (TextView) findViewById(R.id.heading_tv);
-        rangeText = (TextView) findViewById(R.id.range_tv);
-//		vs = (ViewSwitcher) findViewById(R.id.view_switcher);
     }
 
     private String getRangeStr() {
-        int date = cal.get(Calendar.DATE);
-        int month = cal.get(Calendar.MONTH);
-        int year = cal.get(Calendar.YEAR);
-        dt.setTime(System.currentTimeMillis());
+        int date = mCalendar.get(Calendar.DATE);
+        int month = mCalendar.get(Calendar.MONTH);
+        int year = mCalendar.get(Calendar.YEAR);
 
         switch (TaskManager.getDateRange()) {
             case 0: // Daily
-                if (date == dt.getDate() && month == dt.getMonth() && year == dt.getYear() + 1900)
+                if (date == Calendar.DATE && month == Calendar.MONTH && year == Calendar.YEAR + 1900)
                     return "Today";
-                else return date + " " + monthArr[month + 1];
+                else return date + " " + mMonthList[month + 1];
 
             case 1: // Weekly
-                return date + " " + monthArr[month + 1] + move(+1) + " - " + cal.get(Calendar.DATE) + " " + monthArr[cal.get(Calendar.MONTH) + 1] + move(-1);
+                return date + " " + mMonthList[month + 1] + setupCalendarView(+1) + " - " + mCalendar.get(Calendar.DATE) + " " + mMonthList[mCalendar.get(Calendar.MONTH) + 1] + setupCalendarView(-1);
 
             case 2: // Monthly
-                return monthArr[month + 1] + " " + year;
+                return mMonthList[month + 1] + " " + year;
 
             case 3: // Yearly
                 return year + "";
@@ -126,267 +135,148 @@ public class AlarmActivity extends ListActivity {
         return null;
     }
 
-    private Cursor createCursor() {
-        Cursor c = TaskManager.dbHelper.listNotifications(db, cal.getTimeInMillis() + move(+1), cal.getTimeInMillis() + move(-1));
-        startManagingCursor(c);
-        return c;
+    private void populateList() {
+        List<AlarmModel> alarms = new ArrayList<>();
+
+        if((AlarmModel.listAll(AlarmModel.class) !=null || !AlarmModel.listAll(AlarmModel.class).isEmpty())){
+            for(AlarmModel alarmModel : AlarmModel.listAll(AlarmModel.class))
+                alarms.add(alarmModel);
+        }
+
+        alarmViewAdapter = new AlarmViewAdapter(alarms,mAlarmClickListener,mContext);
+
+        LinearLayoutManager llm = new LinearLayoutManager(this);
+        llm.setOrientation(LinearLayoutManager.VERTICAL);
+        mRecycleView.setLayoutManager(llm);
+
+        mRecycleView.setAdapter(alarmViewAdapter);
+
+        alarmViewAdapter.updateList(alarms);
+    }
+
+    private String setupCalendarView(int step) {
+        switch (TaskManager.getDateRange()) {
+            case 0:
+                mCalendar.add(Calendar.DATE, step);
+                break;
+            case 1:
+                mCalendar.add(Calendar.DATE, 7 * step);
+                break;
+            case 2:
+                mCalendar.add(Calendar.MONTH, step);
+                break;
+            case 3:
+                mCalendar.add(Calendar.YEAR, step);
+                break;
+        }
+        return "";
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.settings_ib:
+                startActivity(new Intent(this, PreferencesActivity.class));
+                break;
+            case R.id.add_alarm_ib:
+                startActivity(new Intent(this, AddAlarmActivity.class));
+                break;
+            case R.id.left_ib:
+                setupCalendarView(-1);
+                mRangeText.setText(getRangeStr());
+                populateList();
+                break;
+            case R.id.right_ib:
+                setupCalendarView(+1);
+                mRangeText.setText(getRangeStr());
+                populateList();
+                break;
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putLong(getString(R.string.var_bundle_calendar), mCalendar.getTimeInMillis());
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle state) {
+        super.onRestoreInstanceState(state);
+        mCalendar.setTimeInMillis(state.getLong(getString(R.string.var_bundle_calendar)));
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        SimpleCursorAdapter adapter = new SimpleCursorAdapter(
-                this,
-                R.layout.row,
-                createCursor(),
-                new String[]{Alarm.COL_NAME, AlarmMsg.COL_DATETIME, AlarmMsg.COL_DATETIME, AlarmMsg.COL_DATETIME, AlarmMsg.COL_DATETIME},
-                new int[]{R.id.msg_tv, R.id.year_tv, R.id.month_tv, R.id.date_tv, R.id.time_tv});
-
-        adapter.setViewBinder(new SimpleCursorAdapter.ViewBinder() {
-            @Override
-            public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
-                if (view.getId() == R.id.msg_tv) return false;
-
-                TextView tv = (TextView) view;
-                long time = cursor.getLong(columnIndex);
-                dt.setTime(time);
-                switch (view.getId()) {
-                    case R.id.year_tv:
-                        tv.setText(String.valueOf(dt.getYear() + 1900));
-                        break;
-                    case R.id.month_tv:
-                        tv.setText(monthArr[dt.getMonth() + 1]);
-                        break;
-                    case R.id.date_tv:
-                        tv.setText(String.valueOf(dt.getDate()));
-                        break;
-                    case R.id.time_tv:
-                        long now = System.currentTimeMillis();
-                        String txt = TaskManager.showRemainingTime() ? CommonUtils.getRemainingTime(time, now) : CommonUtils.getActualTime(dt.getHours(), dt.getMinutes());
-                        if (TextUtils.isEmpty(txt))
-                            txt = CommonUtils.getActualTime(dt.getHours(), dt.getMinutes());
-                        tv.setText(txt);
-
-                        RelativeLayout parent = (RelativeLayout) tv.getParent();
-                        TextView tv2 = (TextView) parent.findViewById(R.id.msg_tv);
-                        if (time < now) tv2.setTextColor(Color.parseColor("#555555"));
-                        else tv2.setTextColor(Color.parseColor("#587498"));
-                        break;
-                }
-                return true;
-            }
-        });
-        setListAdapter(adapter);
-
-        rangeText.setText(getRangeStr());
-    }
-
-    private String move(int step) {
-        switch (TaskManager.getDateRange()) {
-            case 0:
-                cal.add(Calendar.DATE, 1 * step);
-                break;
-            case 1:
-                cal.add(Calendar.DATE, 7 * step);
-                break;
-            case 2:
-                cal.add(Calendar.MONTH, 1 * step);
-                break;
-            case 3:
-                cal.add(Calendar.YEAR, 1 * step);
-                break;
-        }
-        return "";
-    }
-
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.imageButton1:
-                startActivity(new Intent(this, PreferencesActivity.class));
-                break;
-            case R.id.imageButton2:
-                startActivity(new Intent(this, AddAlarmActivity.class));
-                break;
-            case R.id.imageButton3:
-                move(-1);
-                rangeText.setText(getRangeStr());
-                ((SimpleCursorAdapter) getListAdapter()).changeCursor(createCursor());
-                break;
-            case R.id.imageButton4:
-                move(+1);
-                rangeText.setText(getRangeStr());
-                ((SimpleCursorAdapter) getListAdapter()).changeCursor(createCursor());
-                break;
-/*		case R.id.toggleButton1:
-			vs.showNext();
-			break;*/
-        }
+        populateList();
+        mRangeText.setText(getRangeStr());
     }
 
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         if (v.getId() == android.R.id.list) {
             getMenuInflater().inflate(R.menu.context_menu, menu);
-            menu.setHeaderTitle("Choose an Option");
+            menu.setHeaderTitle(R.string.alarm_activity_menu_title);
             menu.setHeaderIcon(R.drawable.ic_dialog_menu_generic);
 
             AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
-            alarmMsg.setId(info.id);
-            alarmMsg.load(db);
-            if (alarmMsg.getDateTime() < System.currentTimeMillis())
-                menu.removeItem(R.id.menu_edit);
         }
     }
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-        boolean refresh = false;
 
         switch (item.getItemId()) {
             case R.id.menu_edit:
-                alarmMsg.setId(info.id);
-                alarmMsg.load(db);
-                alarm.reset();
-                alarm.setId(alarmMsg.getAlarmId());
-                alarm.load(db);
 
-                showDialog(R.id.menu_edit);
+                showEditDialog();
                 break;
 
             case R.id.menu_delete:
-                TaskManager.dbHelper.cancelNotification(db, info.id, false);
-                refresh = true;
 
                 Intent cancelThis = new Intent(this, AlarmService.class);
-                cancelThis.putExtra(AlarmMsg.COL_ID, String.valueOf(info.id));
+                //cancelThis.putExtra(AlarmMsg.COL_ID, String.valueOf(info.id));
                 cancelThis.setAction(AlarmService.CANCEL);
                 startService(cancelThis);
                 break;
 
             case R.id.menu_delete_repeating:
-                alarmMsg.setId(info.id);
-                alarmMsg.load(db);
-                TaskManager.dbHelper.cancelNotification(db, alarmMsg.getAlarmId(), true);
-                refresh = true;
 
                 Intent cancelRepeating = new Intent(this, AlarmService.class);
-                cancelRepeating.putExtra(AlarmMsg.COL_ALARMID, String.valueOf(alarmMsg.getAlarmId()));
                 cancelRepeating.setAction(AlarmService.CANCEL);
                 startService(cancelRepeating);
                 break;
         }
 
-        if (refresh) {
-            SimpleCursorAdapter adapter = (SimpleCursorAdapter) getListAdapter();
-            adapter.getCursor().requery();
-            adapter.notifyDataSetChanged();
-        }
-
         return true;
     }
 
-    @Override
-    protected void onListItemClick(ListView l, View v, int position, long id) {
-        openContextMenu(v);
-    }
+    //openContextMenu(v);
 
-    @Override
-    protected Dialog onCreateDialog(int id) {
-        switch (id) {
-            case R.id.menu_edit:
-                return new AlertDialog.Builder(this)
-                        .setTitle("Edit")
-                        .setView(getLayoutInflater().inflate(R.layout.edit_activity, null))
-                        .setCancelable(false)
-                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                Dialog d = (Dialog) dialog;
-                                EditText msgEdit = (EditText) d.findViewById(R.id.msg_et);
-                                CheckBox soundCb = (CheckBox) d.findViewById(R.id.sound_cb);
+    private void showEditDialog(){
+        AlertDialog alertDialog =  new AlertDialog.Builder(this)
+                .setTitle("Edit")
+                .setView(getLayoutInflater().inflate(R.layout.edit_activity, null))
+                .setCancelable(false)
+                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        Dialog d = (Dialog) dialog;
+                        EditText msgEdit = d.findViewById(R.id.msg_et);
+                        CheckBox soundCb = d.findViewById(R.id.sound_cb);
 
-                                alarm.setSound(soundCb.isChecked());
-                                if (!TextUtils.isEmpty(msgEdit.getText())) {
-                                    alarm.setName(msgEdit.getText().toString());
-                                    alarm.persist(db);
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                })
+                .create();
 
-                                    SimpleCursorAdapter adapter = (SimpleCursorAdapter) getListAdapter();
-                                    adapter.getCursor().requery();
-                                    adapter.notifyDataSetChanged();
-
-                                } else {
-                                    Toast.makeText(AlarmActivity.this, "Enter a message", Toast.LENGTH_SHORT).show();
-                                }
-                            }
-                        })
-                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                dialog.cancel();
-                            }
-                        })
-                        .create();
-        }
-        return super.onCreateDialog(id);
-    }
-
-    @Override
-    protected void onPrepareDialog(int id, Dialog dialog) {
-        super.onPrepareDialog(id, dialog);
-        switch (id) {
-            case R.id.menu_edit:
-                EditText msgEdit = (EditText) dialog.findViewById(R.id.msg_et);
-                CheckBox soundCb = (CheckBox) dialog.findViewById(R.id.sound_cb);
-
-                msgEdit.setText(alarm.getName());
-                soundCb.setChecked(alarm.getSound());
-                break;
-        }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.options_menu, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        if (getListAdapter().isEmpty()) {
-            menu.findItem(R.id.menu_delete_all).setEnabled(false);
-        } else {
-            menu.findItem(R.id.menu_delete_all).setEnabled(true);
-        }
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menu_delete_all:
-                String startTime = cal.getTimeInMillis() + move(+1);
-                String endTime = cal.getTimeInMillis() + move(-1);
-                TaskManager.dbHelper.cancelNotification(db, startTime, endTime);
-
-                Intent cancelAll = new Intent(this, AlarmService.class);
-                cancelAll.putExtra(Alarm.COL_FROMDATE, startTime);
-                cancelAll.putExtra(Alarm.COL_TODATE, endTime);
-                cancelAll.setAction(AlarmService.CANCEL);
-                startService(cancelAll);
-
-                SimpleCursorAdapter adapter = (SimpleCursorAdapter) getListAdapter();
-                adapter.getCursor().requery();
-                adapter.notifyDataSetChanged();
-                return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    protected void onDestroy() {
-        if (disclaimer != null)
-            disclaimer.dismiss();
-        super.onDestroy();
+        alertDialog.show();
     }
 }
 
