@@ -85,7 +85,7 @@ public class AddAlarmActivity extends Activity implements View.OnClickListener{
         String toParse = mDateButton.getText().toString() + " " + mTimeButton.getText().toString();
         SimpleDateFormat formatter = new SimpleDateFormat(getString(R.string.default_date_format));
 
-        Date date = null; // You will need try/catch around this
+        Date date = null;
         try {
             date = formatter.parse(toParse);
         } catch (ParseException e) {
@@ -145,7 +145,7 @@ public class AddAlarmActivity extends Activity implements View.OnClickListener{
                 new DatePickerDialog.OnDateSetListener() {
                     @Override
                     public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                        mDateButton.setText( CommonUtils.getDateStr(year,month,dayOfMonth));
+                        mDateButton.setText(CommonUtils.getDateStr(year,month,dayOfMonth));
                     }
                 },
                 cal.get(Calendar.YEAR),

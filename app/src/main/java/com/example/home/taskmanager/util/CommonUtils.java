@@ -40,7 +40,8 @@ public class CommonUtils {
     }
 
     public static final String getDateStr(int year, int month, int date) {
-        return concat(year, "-", month, "-", date);
+        month = month+1;
+        return concat(year, "-", month>9 ? "":"0", month, "-", date>9 ? "":"0",date);
     }
 
     public static final String getTimeStr(int hour, int minute) {

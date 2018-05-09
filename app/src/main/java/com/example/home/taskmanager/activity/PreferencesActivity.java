@@ -70,7 +70,6 @@ public class PreferencesActivity extends PreferenceActivity implements SharedPre
 
     if (pref instanceof ListPreference) {
       ListPreference listPref = (ListPreference) pref;
-
       pref.setSummary(listPref.getEntry());
       return;
     }

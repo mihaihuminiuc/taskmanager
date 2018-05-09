@@ -11,6 +11,9 @@ import com.example.home.taskmanager.model.AlarmModel;
 import com.example.home.taskmanager.receiver.AlarmReceiver;
 import com.example.home.taskmanager.util.CommonUtils;
 
+import java.util.Calendar;
+import java.util.TimeZone;
+
 public class AlarmService extends IntentService {
 
     private static final String TAG = "AlarmService";
@@ -45,7 +48,7 @@ public class AlarmService extends IntentService {
             }
 
             if (CANCEL.equals(action)) {
-                execute(CREATE, alarmId);
+                execute(CANCEL, alarmId);
             }
         }
     }
@@ -54,16 +57,25 @@ public class AlarmService extends IntentService {
         Intent mIntent;
         PendingIntent mPendingIntent;
         AlarmManager mAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        long time;
+        long now = System.currentTimeMillis();
+        long time, diff;
 
         mIntent = new Intent(this, AlarmReceiver.class);
         mIntent.putExtra(CommonUtils.ALARM_MODEL_ID, AlarmModel.findById(AlarmModel.class,alarmId).getId());
 
         mPendingIntent = PendingIntent.getBroadcast(this, 0, mIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        Calendar c = Calendar.getInstance();
+        c.setTimeZone(TimeZone.getTimeZone("GMT+2"));
+        c.setTimeInMillis(AlarmModel.findById(AlarmModel.class,alarmId).getTime());
 
-        time = AlarmModel.findById(AlarmModel.class,alarmId).getTime();
-        if (CREATE.equals(action) && mAlarmManager!=null) {
-            mAlarmManager.set(AlarmManager.RTC_WAKEUP, time, mPendingIntent);
+        time = c.getTimeInMillis();
+
+        diff = time -now + (long)CommonUtils.MIN;
+        if (CREATE.equals(action)) {
+            if (diff > 0 && diff < CommonUtils.YEAR)
+                mAlarmManager.set(AlarmManager.RTC_WAKEUP, time, mPendingIntent);
+        } else if (CANCEL.equals(action)) {
+            mAlarmManager.cancel(mPendingIntent);
         }
     }
 

@@ -8,6 +8,7 @@ import android.widget.TextView;
 import com.example.home.taskmanager.R;
 import com.example.home.taskmanager.listeners.AlarmClickListener;
 import com.example.home.taskmanager.model.AlarmModel;
+import com.example.home.taskmanager.util.CommonUtils;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -40,6 +41,6 @@ public class AlarmViewHolder extends RecyclerView.ViewHolder {
         mDate.setText(String.valueOf(calendar.get(Calendar.DATE)));
         mMonth.setText(mMonthList[calendar.get(Calendar.MONTH) + 1]);
         mYear.setText(String.valueOf(calendar.get(Calendar.YEAR)));
-        mTime.setText(calendar.get(Calendar.HOUR) + ":" + calendar.get(Calendar.MINUTE));
+        mTime.setText(CommonUtils.getTimeStr(calendar.get(Calendar.HOUR_OF_DAY) , calendar.get(Calendar.MINUTE)));
     }
 }
