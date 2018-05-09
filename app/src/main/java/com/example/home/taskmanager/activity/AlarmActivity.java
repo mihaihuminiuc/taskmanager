@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -15,6 +16,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
+import android.widget.CalendarView;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -26,26 +28,29 @@ import com.example.home.taskmanager.listadapter.AlarmViewAdapter;
 import com.example.home.taskmanager.listeners.AlarmClickListener;
 import com.example.home.taskmanager.model.AlarmModel;
 import com.example.home.taskmanager.service.AlarmService;
+import com.example.home.taskmanager.util.CommonUtils;
+import com.orm.query.Condition;
+import com.orm.query.Select;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-public class AlarmActivity extends AppCompatActivity implements View.OnClickListener{
+public class AlarmActivity extends AppCompatActivity implements View.OnClickListener, CalendarView.OnDateChangeListener{
 
     private TextView mRangeText;
     private ImageButton mSettingButton, mAddAlarmButton, mLeftButton, mRightButton;
 
     private RecyclerView mRecycleView;
 
+    private CalendarView mCalendarView;
+
     private AlarmViewAdapter alarmViewAdapter;
 
     private Context mContext;
 
     private AlarmClickListener mAlarmClickListener;
-
-    private SQLiteDatabase mSqLiteDatabase;
 
     public Calendar mCalendar;
     public Date mDate;
@@ -64,8 +69,6 @@ public class AlarmActivity extends AppCompatActivity implements View.OnClickList
 
         initUI();
         setupActions();
-        initDB();
-
     }
 
     private void initVar(){
@@ -81,6 +84,7 @@ public class AlarmActivity extends AppCompatActivity implements View.OnClickList
         mLeftButton = findViewById(R.id.left_ib);
         mRightButton = findViewById(R.id.right_ib);
         mRecycleView = findViewById(R.id.recycleview);
+        mCalendarView = findViewById(R.id.simpleCalendarView);
     }
 
     private void setupActions(){
@@ -88,28 +92,27 @@ public class AlarmActivity extends AppCompatActivity implements View.OnClickList
         mAddAlarmButton.setOnClickListener(this);
         mLeftButton.setOnClickListener(this);
         mRightButton.setOnClickListener(this);
-
+        mCalendarView.setOnDateChangeListener(this);
         //mAlarmClickListener.onItemClick();
     }
 
-    private void initDB(){
-        int r = TaskManager.getDateRange();
-        switch (r) {
-            case 3: // Yearly
-                mCalendar.set(Calendar.MONTH, 0);
+    private void populateList(long beginTime, long endTime) {
 
-            case 2: // Monthly
-                mCalendar.set(Calendar.DATE, 1);
+        Select select = Select.from(AlarmModel.class)
+                .where(Condition.prop("time").gt(beginTime), Condition
+                        .prop("time").lt(endTime));
 
-            case 1: // Weekly
-                if (r == 1) mCalendar.set(Calendar.DATE, mCalendar.getFirstDayOfWeek());
+        List<AlarmModel> alarms = select.list();
 
-            case 0: // Daily
-                mCalendar.set(Calendar.HOUR_OF_DAY, 0);
-                mCalendar.set(Calendar.MINUTE, 0);
-                mCalendar.set(Calendar.SECOND, 0);
-                mCalendar.set(Calendar.MILLISECOND, 0);
-        }
+        alarmViewAdapter = new AlarmViewAdapter(alarms,mAlarmClickListener,mContext);
+
+        LinearLayoutManager llm = new LinearLayoutManager(this);
+        llm.setOrientation(LinearLayoutManager.VERTICAL);
+        mRecycleView.setLayoutManager(llm);
+
+        mRecycleView.setAdapter(alarmViewAdapter);
+
+        alarmViewAdapter.updateList(alarms);
     }
 
     private String getRangeStr() {
@@ -135,25 +138,6 @@ public class AlarmActivity extends AppCompatActivity implements View.OnClickList
         return null;
     }
 
-    private void populateList() {
-        List<AlarmModel> alarms = new ArrayList<>();
-
-        if((AlarmModel.listAll(AlarmModel.class) !=null || !AlarmModel.listAll(AlarmModel.class).isEmpty())){
-            for(AlarmModel alarmModel : AlarmModel.listAll(AlarmModel.class))
-                alarms.add(alarmModel);
-        }
-
-        alarmViewAdapter = new AlarmViewAdapter(alarms,mAlarmClickListener,mContext);
-
-        LinearLayoutManager llm = new LinearLayoutManager(this);
-        llm.setOrientation(LinearLayoutManager.VERTICAL);
-        mRecycleView.setLayoutManager(llm);
-
-        mRecycleView.setAdapter(alarmViewAdapter);
-
-        alarmViewAdapter.updateList(alarms);
-    }
-
     private String setupCalendarView(int step) {
         switch (TaskManager.getDateRange()) {
             case 0:
@@ -169,6 +153,7 @@ public class AlarmActivity extends AppCompatActivity implements View.OnClickList
                 mCalendar.add(Calendar.YEAR, step);
                 break;
         }
+
         return "";
     }
 
@@ -184,12 +169,18 @@ public class AlarmActivity extends AppCompatActivity implements View.OnClickList
             case R.id.left_ib:
                 setupCalendarView(-1);
                 mRangeText.setText(getRangeStr());
-                populateList();
+
+                long beginTime = CommonUtils.atStartOfDay(mCalendar.getTime()).getTime();
+                long endTime = CommonUtils.atEndOfDay(mCalendar.getTime()).getTime();
+                populateList(beginTime,endTime);
                 break;
             case R.id.right_ib:
                 setupCalendarView(+1);
                 mRangeText.setText(getRangeStr());
-                populateList();
+
+                beginTime = CommonUtils.atStartOfDay(mCalendar.getTime()).getTime();
+                endTime = CommonUtils.atEndOfDay(mCalendar.getTime()).getTime();
+                populateList(beginTime,endTime);
                 break;
         }
     }
@@ -209,8 +200,9 @@ public class AlarmActivity extends AppCompatActivity implements View.OnClickList
     @Override
     protected void onResume() {
         super.onResume();
-
-        populateList();
+        long beginTime = CommonUtils.atStartOfDay(mCalendar.getTime()).getTime();
+        long endTime = CommonUtils.atEndOfDay(mCalendar.getTime()).getTime();
+        populateList(beginTime,endTime);
         mRangeText.setText(getRangeStr());
     }
 
@@ -254,7 +246,6 @@ public class AlarmActivity extends AppCompatActivity implements View.OnClickList
         return true;
     }
 
-    //openContextMenu(v);
 
     private void showEditDialog(){
         AlertDialog alertDialog =  new AlertDialog.Builder(this)
@@ -277,6 +268,15 @@ public class AlarmActivity extends AppCompatActivity implements View.OnClickList
                 .create();
 
         alertDialog.show();
+    }
+
+    @Override
+    public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
+        mCalendar.set(year,month,dayOfMonth);
+        long beginTime = CommonUtils.atStartOfDay(mCalendar.getTime()).getTime();
+        long endTime = CommonUtils.atEndOfDay(mCalendar.getTime()).getTime();
+
+        populateList(beginTime,endTime);
     }
 }
 

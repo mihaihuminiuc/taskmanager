@@ -20,4 +20,6 @@
     <string name="add_alarm">ADD ALARM</string>
     <string name="default_date_format">yyyy-MM-dd HH:mm</string>
 
+    <string name="default_notification_channel_id">default</string>
+
 </resources>

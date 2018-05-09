@@ -3,6 +3,7 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical"
+    android:gravity="center"
     >
 
     <RelativeLayout
@@ -44,6 +45,11 @@
 
     </RelativeLayout>
 
+    <CalendarView
+        android:id="@+id/simpleCalendarView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
     <LinearLayout
         android:background="@color/blue"
         android:layout_width="wrap_content"
@@ -75,33 +81,10 @@
             android:src="@drawable/right" />
 
     </LinearLayout>
-    <!--
-        <LinearLayout
-            android:id="@+id/list_view"
-            android:layout_width="fill_parent"
-            android:layout_height="0dip"
-            android:layout_weight="1"
-            android:padding="@dimen/padding_small"
-            android:orientation="vertical" >
 
-            <ListView android:id="@android:id/list"
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
-                />
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycleview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
 
-            <TextView android:id="@android:id/empty"
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
-                android:gravity="center"
-                android:textColor="@android:color/black"
-                android:text="@string/alarm_list_empty" />
-
-        </LinearLayout>
-    -->
-
-
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/recycleview"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
 </LinearLayout>

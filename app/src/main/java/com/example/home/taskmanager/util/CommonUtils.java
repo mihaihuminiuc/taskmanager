@@ -1,19 +1,7 @@
 package com.example.home.taskmanager.util;
 
-import android.content.Context;
-import android.graphics.Shader;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
-import android.os.Build;
-import android.view.View;
-
-import com.example.home.taskmanager.TaskManager;
-
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Calendar;
+import java.util.Date;
 
 /**
  * Created by humin on 4/1/2018.
@@ -46,5 +34,25 @@ public class CommonUtils {
 
     public static final String getTimeStr(int hour, int minute) {
         return concat(hour, ":", minute>9 ? "":"0", minute);
+    }
+
+    public static Date atEndOfDay(Date date) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        calendar.set(Calendar.HOUR_OF_DAY, 23);
+        calendar.set(Calendar.MINUTE, 59);
+        calendar.set(Calendar.SECOND, 59);
+        calendar.set(Calendar.MILLISECOND, 999);
+        return calendar.getTime();
+    }
+
+    public static Date atStartOfDay(Date date) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        return calendar.getTime();
     }
 }
