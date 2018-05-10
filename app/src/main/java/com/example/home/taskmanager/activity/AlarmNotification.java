@@ -21,6 +21,7 @@ import android.widget.TextView;
 
 import com.example.home.taskmanager.R;
 import com.example.home.taskmanager.TaskManager;
+import com.example.home.taskmanager.util.CommonUtils;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -30,7 +31,7 @@ import java.util.concurrent.Future;
 
 public class AlarmNotification extends Activity implements View.OnClickListener{
 
-    private Ringtone mRingtone;
+    private Uri mRingtoneUri;
     private Vibrator mVibrator;
     private final long[] mVibratePattern = { 0, 500, 500 };
     private boolean mVibrate;
@@ -38,7 +39,7 @@ public class AlarmNotification extends Activity implements View.OnClickListener{
     private Timer mTimer = null;
     private TextView mTextView;
     private Button mDismissButton;
-    private Future longRunningTaskFuture;
+    private boolean run = false;
 
     @Override
     protected void onCreate(Bundle bundle)
@@ -66,7 +67,7 @@ public class AlarmNotification extends Activity implements View.OnClickListener{
     private void getData(){
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
-        mRingtone = RingtoneManager.getRingtone(getApplicationContext(),  Uri.parse(prefs.getString("ringtone_pref", "DEFAULT_RINGTONE_URI")));
+        mRingtoneUri = Uri.parse(prefs.getString("ringtone_pref", "DEFAULT_RINGTONE_URI"));
 
         if (getIntent().hasExtra("ALARM_NAME"))
             mTextView.setText(getIntent().getStringExtra("ALARM_NAME"));
@@ -89,41 +90,40 @@ public class AlarmNotification extends Activity implements View.OnClickListener{
 
     private void start(){
 
-        ExecutorService threadPoolExecutor = Executors.newSingleThreadExecutor();
-        Runnable longRunningTask = new Runnable() {
+        long delay = 60000;
+        mTimer = new Timer();
+
+        final TimerTask task = new TimerTask() {
             @Override
             public void run() {
-                if(mSound)
-                    mRingtone.play();
-
-                if (mVibrate)
-                    mVibrator.vibrate(mVibratePattern, 1);
+                if(run) {
+                    if(mSound)
+                        CommonUtils.playSound(getApplicationContext(),mRingtoneUri,true);
+                    if (mVibrate)
+                        mVibrator.vibrate(mVibratePattern, 1);
+                } else {
+                    CommonUtils.playSound(getApplicationContext(),mRingtoneUri,false);
+                    mVibrator.cancel();
+                    mTimer.cancel();
+                    mTimer.purge();
+                }
             }
         };
 
-        longRunningTaskFuture = threadPoolExecutor.submit(longRunningTask);
+        mTimer.schedule(task, delay);
 
-
-
-        mTimer = new Timer();
-        mTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                longRunningTaskFuture.cancel(true);
-                Log.i("TAG_NOTIFICATION","HERE");
-                finish();
-            }
-        }, /*Long.valueOf(TaskManager.getRingTime())*/60000);
-
-
+        // set run to false here to stop the timer.
+        run = false;
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.dismiss_alarm:
-                longRunningTaskFuture.cancel(true);
-                Log.i("TAG_NOTIFICATION","HERE");
+                CommonUtils.playSound(getApplicationContext(),mRingtoneUri,false);
+                mVibrator.cancel();
+                mTimer.cancel();
+                mTimer.purge();
                 finish();
                 break;
         }

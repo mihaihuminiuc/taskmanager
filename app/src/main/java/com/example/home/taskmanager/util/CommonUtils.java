@@ -1,5 +1,9 @@
 package com.example.home.taskmanager.util;
 
+import android.content.Context;
+import android.media.MediaPlayer;
+import android.net.Uri;
+
 import java.util.Calendar;
 import java.util.Date;
 
@@ -54,5 +58,33 @@ public class CommonUtils {
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
         return calendar.getTime();
+    }
+
+    public static void playSound(Context context, Uri soundUri, boolean play){
+        MediaPlayer mp = MediaPlayer.create(context, soundUri);
+
+        if(play){
+            try {
+                if (mp.isPlaying()) {
+                    mp.stop();
+                    mp.release();
+
+                    mp = MediaPlayer.create(context, soundUri);
+                }
+
+                mp.start();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }else{
+            try {
+                if (mp.isPlaying()) {
+                    mp.stop();
+                    mp.release();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
