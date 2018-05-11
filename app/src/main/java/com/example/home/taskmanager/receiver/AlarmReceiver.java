@@ -21,8 +21,6 @@ import com.example.home.taskmanager.util.NotificationUtils;
 
 public class AlarmReceiver extends BroadcastReceiver {
 
-    private NotificationUtils mNotificationUtils;
-
     @Override
     public void onReceive(Context context, Intent intent) {
         long alarmId = intent.getLongExtra(CommonUtils.ALARM_MODEL_ID, -1);
@@ -34,33 +32,6 @@ public class AlarmReceiver extends BroadcastReceiver {
         newIntent.putExtra("ALARM_SOUND",alarmModel.isSound());
         newIntent.putExtra("ALARM_VIBRATE", TaskManager.isVibrate());
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-
-        PendingIntent pi = PendingIntent.getActivity(context,
-                0 /* Request code */,
-                intent,
-                PendingIntent.FLAG_ONE_SHOT);
-
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
-            mNotificationUtils = new NotificationUtils(context);
-            Notification.Builder nb = mNotificationUtils.getChannelNotification("Missed alarm", alarmModel.getMessage(), pi);
-
-            mNotificationUtils.getManager().notify(101, nb.build());
-        }else{
-            Uri sound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-
-            NotificationCompat.Builder builder = new NotificationCompat.Builder(context, context.getString(R.string.default_notification_channel_id))
-                    .setSmallIcon(R.mipmap.ic_launcher)
-                    .setContentTitle("Missed alarm: " + alarmModel.getMessage())
-                    .setContentText("TEST")
-                    .setAutoCancel(true)
-                    .setSound(sound)
-                    .setContentIntent(pi);
-
-            NotificationManager manager =
-                    (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-
-            manager.notify((int) alarmId, builder.build());
-        }
 
         context.startActivity(newIntent);
     }

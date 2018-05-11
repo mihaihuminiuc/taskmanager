@@ -1,6 +1,7 @@
 package com.example.home.taskmanager.activity;
 
 import android.app.Activity;
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -9,6 +10,7 @@ import android.content.SharedPreferences;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
@@ -22,6 +24,7 @@ import android.widget.TextView;
 import com.example.home.taskmanager.R;
 import com.example.home.taskmanager.TaskManager;
 import com.example.home.taskmanager.util.CommonUtils;
+import com.example.home.taskmanager.util.NotificationUtils;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -40,11 +43,15 @@ public class AlarmNotification extends Activity implements View.OnClickListener{
     private TextView mTextView;
     private Button mDismissButton;
     private boolean run = false;
+    private NotificationUtils mNotificationUtils;
+    private Context mContext;
 
     @Override
     protected void onCreate(Bundle bundle)
     {
         super.onCreate(bundle);
+
+        mContext = this;
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
                 | WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
@@ -104,6 +111,7 @@ public class AlarmNotification extends Activity implements View.OnClickListener{
                 } else {
                     CommonUtils.playSound(getApplicationContext(),mRingtoneUri,false);
                     mVibrator.cancel();
+                    showNotification();
                     mTimer.cancel();
                     mTimer.purge();
                 }
@@ -126,6 +134,37 @@ public class AlarmNotification extends Activity implements View.OnClickListener{
                 mTimer.purge();
                 finish();
                 break;
+        }
+    }
+
+    private void showNotification(){
+
+        Intent intent = new Intent(mContext, AlarmActivity.class);
+
+        PendingIntent pi = PendingIntent.getActivity(mContext,
+                0 /* Request code */,
+                intent,
+                PendingIntent.FLAG_ONE_SHOT);
+
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            mNotificationUtils = new NotificationUtils(mContext);
+            Notification.Builder nb = mNotificationUtils.getChannelNotification("Missed alarm", getIntent().getStringExtra("ALARM_NAME"), pi);
+
+            mNotificationUtils.getManager().notify(101, nb.build());
+        }else{
+            Uri sound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext, mContext.getString(R.string.default_notification_channel_id))
+                    .setSmallIcon(R.mipmap.ic_launcher)
+                    .setContentTitle("Missed alarm: " + getIntent().getStringExtra("ALARM_NAME"))
+                    .setAutoCancel(true)
+                    .setSound(sound)
+                    .setContentIntent(pi);
+
+            NotificationManager manager =
+                    (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
+
+            manager.notify(1, builder.build());
         }
     }
 }
