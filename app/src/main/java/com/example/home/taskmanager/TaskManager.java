@@ -4,7 +4,11 @@ import android.app.Application;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
+import com.example.home.taskmanager.util.CommonUtils;
 import com.orm.SugarContext;
+import com.orm.SugarDb;
+
+import java.io.File;
 
 /**
  * Created by humin on 4/1/2018.
@@ -66,4 +70,6 @@ public class TaskManager extends Application {
     public static String getRingTime(){
         return mSharedPreferences.getString(RING_TIME,String.valueOf(60000));
     }
+
+
 }

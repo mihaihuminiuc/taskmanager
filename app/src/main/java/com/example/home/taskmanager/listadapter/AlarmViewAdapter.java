@@ -16,12 +16,10 @@ import java.util.List;
 public class AlarmViewAdapter extends RecyclerView.Adapter{
 
     private List<AlarmModel> mAlarmList;
-    private AlarmClickListener mAlarmClickListener;
     private Context mContext;
 
-    public AlarmViewAdapter(List<AlarmModel> alarms, AlarmClickListener alarmClickListener, Context context){
+    public AlarmViewAdapter(List<AlarmModel> alarms, Context context){
         this.mAlarmList = alarms;
-        this.mAlarmClickListener = alarmClickListener;
         this.mContext = context;
     }
 
@@ -33,7 +31,7 @@ public class AlarmViewAdapter extends RecyclerView.Adapter{
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        ((AlarmViewHolder) holder).bindData(mContext, mAlarmList.get(position),mAlarmClickListener);
+        ((AlarmViewHolder) holder).bindData(mContext, mAlarmList.get(position));
     }
 
     @Override

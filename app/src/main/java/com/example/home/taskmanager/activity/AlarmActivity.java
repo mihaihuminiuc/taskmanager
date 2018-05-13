@@ -13,6 +13,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.ContextMenu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
@@ -20,7 +21,10 @@ import android.widget.CalendarView;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.home.taskmanager.R;
 import com.example.home.taskmanager.TaskManager;
@@ -29,6 +33,8 @@ import com.example.home.taskmanager.listeners.AlarmClickListener;
 import com.example.home.taskmanager.model.AlarmModel;
 import com.example.home.taskmanager.service.AlarmService;
 import com.example.home.taskmanager.util.CommonUtils;
+import com.example.home.taskmanager.util.CountDownTimer;
+import com.example.home.taskmanager.util.RecyclerItemClickListener;
 import com.orm.query.Condition;
 import com.orm.query.Select;
 
@@ -36,11 +42,17 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class AlarmActivity extends AppCompatActivity implements View.OnClickListener, CalendarView.OnDateChangeListener{
 
     private TextView mRangeText;
     private ImageButton mSettingButton, mAddAlarmButton, mLeftButton, mRightButton;
+
+    private LinearLayout alarmLayout;
+
+    private ProgressBar progressBar;
 
     private RecyclerView mRecycleView;
 
@@ -48,13 +60,15 @@ public class AlarmActivity extends AppCompatActivity implements View.OnClickList
 
     private AlarmViewAdapter alarmViewAdapter;
 
-    private Context mContext;
+    private List<AlarmModel> alarms;
 
-    private AlarmClickListener mAlarmClickListener;
+    private Context mContext;
 
     public Calendar mCalendar;
     public Date mDate;
     private String[] mMonthList;
+
+    private CountDownTimer countDownTimer;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -85,6 +99,8 @@ public class AlarmActivity extends AppCompatActivity implements View.OnClickList
         mRightButton = findViewById(R.id.right_ib);
         mRecycleView = findViewById(R.id.recycleview);
         mCalendarView = findViewById(R.id.simpleCalendarView);
+        alarmLayout = findViewById(R.id.add_alarm_layout);
+        progressBar = findViewById(R.id.progress_dialog);
     }
 
     private void setupActions(){
@@ -93,7 +109,20 @@ public class AlarmActivity extends AppCompatActivity implements View.OnClickList
         mLeftButton.setOnClickListener(this);
         mRightButton.setOnClickListener(this);
         mCalendarView.setOnDateChangeListener(this);
-        //mAlarmClickListener.onItemClick();
+
+        mRecycleView.addOnItemTouchListener(new RecyclerItemClickListener(this, mRecycleView, new RecyclerItemClickListener.OnItemClickListener() {
+            @Override
+            public void onItemClick(View view, int position) {
+                Intent intent = new Intent(getApplicationContext(),AddAlarmActivity.class);
+                intent.putExtra(CommonUtils.ALARM_MODEL_ID,alarms.get(position).getId());
+                startActivity(intent);
+            }
+
+            @Override
+            public void onItemLongClick(View view, int position) {
+                showDialog(alarms.get(position));
+            }
+        }));
     }
 
     private void populateList(long beginTime, long endTime) {
@@ -102,9 +131,9 @@ public class AlarmActivity extends AppCompatActivity implements View.OnClickList
                 .where(Condition.prop("time").gt(beginTime), Condition
                         .prop("time").lt(endTime));
 
-        List<AlarmModel> alarms = select.list();
+        alarms = select.list();
 
-        alarmViewAdapter = new AlarmViewAdapter(alarms,mAlarmClickListener,mContext);
+        alarmViewAdapter = new AlarmViewAdapter(alarms,mContext);
 
         LinearLayoutManager llm = new LinearLayoutManager(this);
         llm.setOrientation(LinearLayoutManager.VERTICAL);
@@ -207,76 +236,57 @@ public class AlarmActivity extends AppCompatActivity implements View.OnClickList
     }
 
     @Override
-    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-        if (v.getId() == android.R.id.list) {
-            getMenuInflater().inflate(R.menu.context_menu, menu);
-            menu.setHeaderTitle(R.string.alarm_activity_menu_title);
-            menu.setHeaderIcon(R.drawable.ic_dialog_menu_generic);
-
-            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
-        }
-    }
-
-    @Override
-    public boolean onContextItemSelected(MenuItem item) {
-        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-
-        switch (item.getItemId()) {
-            case R.id.menu_edit:
-
-                showEditDialog();
-                break;
-
-            case R.id.menu_delete:
-
-                Intent cancelThis = new Intent(this, AlarmService.class);
-                //cancelThis.putExtra(AlarmMsg.COL_ID, String.valueOf(info.id));
-                cancelThis.setAction(AlarmService.CANCEL);
-                startService(cancelThis);
-                break;
-
-            case R.id.menu_delete_repeating:
-
-                Intent cancelRepeating = new Intent(this, AlarmService.class);
-                cancelRepeating.setAction(AlarmService.CANCEL);
-                startService(cancelRepeating);
-                break;
-        }
-
-        return true;
-    }
-
-
-    private void showEditDialog(){
-        AlertDialog alertDialog =  new AlertDialog.Builder(this)
-                .setTitle("Edit")
-                .setView(getLayoutInflater().inflate(R.layout.edit_activity, null))
-                .setCancelable(false)
-                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        Dialog d = (Dialog) dialog;
-                        EditText msgEdit = d.findViewById(R.id.msg_et);
-                        CheckBox soundCb = d.findViewById(R.id.sound_cb);
-
-                    }
-                })
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        dialog.cancel();
-                    }
-                })
-                .create();
-
-        alertDialog.show();
-    }
-
-    @Override
     public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
         mCalendar.set(year,month,dayOfMonth);
         long beginTime = CommonUtils.atStartOfDay(mCalendar.getTime()).getTime();
         long endTime = CommonUtils.atEndOfDay(mCalendar.getTime()).getTime();
 
         populateList(beginTime,endTime);
+    }
+
+    private void showDialog(final AlarmModel alarmModel){
+        AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+        alertDialog.setTitle("Alarm");
+        alertDialog.setMessage("Delete alarm?");
+        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Yes",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(final DialogInterface dialog, int which) {
+
+                        Intent service = new Intent(getApplicationContext(), AlarmService.class);
+                        service.putExtra(CommonUtils.ALARM_MODEL_ID, alarmModel.getId());
+                        service.setAction(AlarmService.CANCEL);
+                        startService(service);
+
+                        countDownTimer = new CountDownTimer(5000,1000) {
+                            @Override
+                            public void onTick(long millisUntilFinished) {
+                                alarmLayout.setVisibility(View.INVISIBLE);
+                                progressBar.setVisibility(View.VISIBLE);
+                            }
+
+                            @Override
+                            public void onFinish() {
+                                long beginTime = CommonUtils.atStartOfDay(mCalendar.getTime()).getTime();
+                                long endTime = CommonUtils.atEndOfDay(mCalendar.getTime()).getTime();
+                                populateList(beginTime,endTime);
+
+                                alarmLayout.setVisibility(View.VISIBLE);
+                                progressBar.setVisibility(View.GONE);
+
+                                dialog.dismiss();
+                            }
+                        };
+
+                        countDownTimer.start();
+                    }
+                });
+        alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "No",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+        alertDialog.show();
     }
 }
 

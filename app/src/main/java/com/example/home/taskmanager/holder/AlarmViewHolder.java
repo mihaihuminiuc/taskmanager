@@ -3,6 +3,7 @@ package com.example.home.taskmanager.holder;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.TextView;
 
 import com.example.home.taskmanager.R;
@@ -14,7 +15,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
-public class AlarmViewHolder extends RecyclerView.ViewHolder {
+public class AlarmViewHolder extends RecyclerView.ViewHolder{
 
     private TextView mMonth, mYear, mDate, mMesage, mTime;
     private String[] mMonthList;
@@ -28,7 +29,7 @@ public class AlarmViewHolder extends RecyclerView.ViewHolder {
         mTime = itemView.findViewById(R.id.time_tv);
     }
 
-    public void bindData(Context context, AlarmModel alarmModel, AlarmClickListener AlarmClickListener){
+    public void bindData(Context context, AlarmModel alarmModel){
 
         mMonthList = context.getResources().getStringArray(R.array.spinner3_arr);
 
@@ -42,5 +43,6 @@ public class AlarmViewHolder extends RecyclerView.ViewHolder {
         mMonth.setText(mMonthList[calendar.get(Calendar.MONTH) + 1]);
         mYear.setText(String.valueOf(calendar.get(Calendar.YEAR)));
         mTime.setText(CommonUtils.getTimeStr(calendar.get(Calendar.HOUR_OF_DAY) , calendar.get(Calendar.MINUTE)));
+
     }
 }

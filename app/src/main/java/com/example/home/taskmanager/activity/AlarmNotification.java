@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Vibrator;
@@ -42,9 +43,10 @@ public class AlarmNotification extends Activity implements View.OnClickListener{
     private Timer mTimer = null;
     private TextView mTextView;
     private Button mDismissButton;
-    private boolean run = false;
+    private Ringtone mRingtone;
     private NotificationUtils mNotificationUtils;
     private Context mContext;
+    private AlarmTask mAlarmTask;
 
     @Override
     protected void onCreate(Bundle bundle)
@@ -74,7 +76,7 @@ public class AlarmNotification extends Activity implements View.OnClickListener{
     private void getData(){
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
-        mRingtoneUri = Uri.parse(prefs.getString("ringtone_pref", "DEFAULT_RINGTONE_URI"));
+        mRingtone = RingtoneManager.getRingtone(getApplicationContext(),  Uri.parse(prefs.getString("ringtone_pref", "DEFAULT_RINGTONE_URI")));
 
         if (getIntent().hasExtra("ALARM_NAME"))
             mTextView.setText(getIntent().getStringExtra("ALARM_NAME"));
@@ -96,43 +98,15 @@ public class AlarmNotification extends Activity implements View.OnClickListener{
     }
 
     private void start(){
-
-        long delay = 60000;
-        mTimer = new Timer();
-
-        final TimerTask task = new TimerTask() {
-            @Override
-            public void run() {
-                if(run) {
-                    if(mSound)
-                        CommonUtils.playSound(getApplicationContext(),mRingtoneUri,true);
-                    if (mVibrate)
-                        mVibrator.vibrate(mVibratePattern, 1);
-                } else {
-                    CommonUtils.playSound(getApplicationContext(),mRingtoneUri,false);
-                    mVibrator.cancel();
-                    showNotification();
-                    mTimer.cancel();
-                    mTimer.purge();
-                }
-            }
-        };
-
-        mTimer.schedule(task, delay);
-
-        // set run to false here to stop the timer.
-        run = false;
+        mAlarmTask = new AlarmTask();
+        mAlarmTask.execute("");
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.dismiss_alarm:
-                CommonUtils.playSound(getApplicationContext(),mRingtoneUri,false);
-                mVibrator.cancel();
-                mTimer.cancel();
-                mTimer.purge();
-                finish();
+                mAlarmTask.cancel(true);
                 break;
         }
     }
@@ -165,6 +139,46 @@ public class AlarmNotification extends Activity implements View.OnClickListener{
                     (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
 
             manager.notify(1, builder.build());
+        }
+    }
+
+    private class AlarmTask extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected String doInBackground(String... params) {
+            if (isCancelled()){
+                mVibrator.cancel();
+                mRingtone.stop();
+                finish();
+            }else{
+                try {
+                    Thread.sleep(60000);
+                    showNotification();
+                    mAlarmTask.cancel(true);
+                } catch (InterruptedException e) {
+                    Thread.interrupted();
+                    mRingtone.stop();
+                    mVibrator.cancel();
+                    finish();
+                }
+            }
+
+            return "Executed";
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            mVibrator.cancel();
+            mRingtone.stop();
+            finish();
+        }
+
+        @Override
+        protected void onPreExecute() {
+            if(mSound)
+                mRingtone.play();
+            if (mVibrate)
+                mVibrator.vibrate(mVibratePattern, 1);
         }
     }
 }

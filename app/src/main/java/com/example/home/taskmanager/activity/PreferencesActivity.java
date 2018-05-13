@@ -31,6 +31,10 @@ import android.text.style.TabStopSpan;
 
 import com.example.home.taskmanager.R;
 import com.example.home.taskmanager.TaskManager;
+import com.example.home.taskmanager.util.CommonUtils;
+import com.orm.SugarDb;
+
+import java.io.File;
 
 public class PreferencesActivity extends PreferenceActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
 
@@ -79,5 +83,15 @@ public class PreferencesActivity extends PreferenceActivity implements SharedPre
       Ringtone ringtone = RingtoneManager.getRingtone(this, ringtoneUri);
       if (ringtone != null) pref.setSummary(ringtone.getTitle(this));
     }
+  }
+
+  public void getDBFile(){
+    SugarDb sugarDb = new SugarDb(getApplicationContext());
+    new File(sugarDb.getDB().getPath());
+    File file = new File(getApplication().getFilesDir(),"taskmanager");
+    if(!file.exists()){
+      file.mkdir();
+    }
+    CommonUtils.copyFile(sugarDb.getDB().getPath(),file.getPath());
   }
 }

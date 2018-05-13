@@ -41,12 +41,27 @@ public class AddAlarmActivity extends Activity implements View.OnClickListener{
 
     private static final SimpleDateFormat sdf = new SimpleDateFormat();
 
+    private AlarmModel alarmModel;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.add_activity);
 
+        Bundle extras = getIntent().getExtras();
+        long longId;
+
+        if (extras != null) {
+            longId = extras.getLong(CommonUtils.ALARM_MODEL_ID);
+            // and get whatever type user account id is
+            alarmModel = AlarmModel.findById(AlarmModel.class,longId);
+        }
+
         initUI();
+
+        if(alarmModel!=null)
+            setUIFields();
+
         setupActions();
     }
 
@@ -62,6 +77,16 @@ public class AddAlarmActivity extends Activity implements View.OnClickListener{
         mTimeButton = findViewById(R.id.time_picker_button);
         mDateButton = findViewById(R.id.date_picker_button);
         mAddAlarmButton = findViewById(R.id.add_alarm);
+    }
+
+    private void setUIFields(){
+        mMessageEditText.setText(alarmModel.getMessage());
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(alarmModel.getTime());
+
+        mTimeButton.setText(CommonUtils.getTimeStr(calendar.get(Calendar.HOUR_OF_DAY),calendar.get(Calendar.MINUTE)));
+        mDateButton.setText(CommonUtils.getDateStr(calendar.get(Calendar.YEAR),calendar.get(Calendar.MONTH),calendar.get(Calendar.DAY_OF_MONTH)));
     }
 
     private void setupActions(){

@@ -1,15 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
 
-    <PreferenceCategory android:title="Display Settings">
-
-        <CheckBoxPreference android:key="time_format"
-            android:title="Time Format"
-            android:summary="Use 24-hour format"
-            android:defaultValue="true" />
-
-    </PreferenceCategory>
-
     <PreferenceCategory android:title="Notification Settings">
 
         <CheckBoxPreference

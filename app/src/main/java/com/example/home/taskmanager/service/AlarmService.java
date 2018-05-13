@@ -56,12 +56,15 @@ public class AlarmService extends IntentService {
     private void execute(String action, long alarmId) {
         Intent mIntent;
         PendingIntent mPendingIntent;
+        AlarmModel alarmModel;
         AlarmManager mAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         long now = System.currentTimeMillis();
         long time, diff;
 
+        alarmModel = AlarmModel.findById(AlarmModel.class,alarmId);
+
         mIntent = new Intent(this, AlarmReceiver.class);
-        mIntent.putExtra(CommonUtils.ALARM_MODEL_ID, AlarmModel.findById(AlarmModel.class,alarmId).getId());
+        mIntent.putExtra(CommonUtils.ALARM_MODEL_ID, alarmModel.getId());
 
         mPendingIntent = PendingIntent.getBroadcast(this, 0, mIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         Calendar c = Calendar.getInstance();
@@ -76,6 +79,7 @@ public class AlarmService extends IntentService {
                 mAlarmManager.set(AlarmManager.RTC_WAKEUP, time, mPendingIntent);
         } else if (CANCEL.equals(action)) {
             mAlarmManager.cancel(mPendingIntent);
+            AlarmModel.delete(alarmModel);
         }
     }
 
