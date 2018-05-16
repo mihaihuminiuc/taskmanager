@@ -14,7 +14,7 @@
 		<TextView
 			android:textSize="@dimen/text_big"
 			android:gravity="center"
-			android:text="@string/add_alarm"
+			android:text="@string/add_alarm_title"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content" />
 
@@ -35,28 +35,6 @@
 	        android:layout_height="wrap_content"
 	        android:text="@string/play_ringtone_text" />
 
-		<!--
-		<LinearLayout
-			android:padding="@dimen/padding_small"
-			android:orientation="horizontal"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			>
-
-			<Button
-				android:text="@string/once_text_button"
-				android:id="@+id/once_button"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content" />
-
-			<Button
-				android:text="@string/repeat_text_button"
-				android:id="@+id/repeat_button"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content" />
-
-		</LinearLayout>
-	-->
 		<include layout="@layout/time_layout"
 			android:layout_width="match_parent"
 			android:layout_height="match_parent" />

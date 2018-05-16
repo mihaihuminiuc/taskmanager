@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:padding="@dimen/alarm_notification_text_size"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        >
+
+        <TextView
+            android:textSize="@dimen/text_big"
+            android:gravity="center"
+            android:text="@string/add_alarm_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <EditText
+            android:padding="@dimen/alarm_notification_text_size"
+            android:id="@+id/msg_et"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:maxLines="2"
+            android:hint="@string/alarm_text_hint" >
+        </EditText>
+
+        <CheckBox
+            android:padding="@dimen/padding_small"
+            android:id="@+id/sound_cb"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/play_ringtone_text" />
+
+        <include layout="@layout/time_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <Button
+            android:background="@color/active"
+            android:paddingTop="@dimen/padding_small"
+            android:id="@+id/add_alarm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/add_alarm_text_button" />
+
+    </LinearLayout>
+
+</ScrollView>

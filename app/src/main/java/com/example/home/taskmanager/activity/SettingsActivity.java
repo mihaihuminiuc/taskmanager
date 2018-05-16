@@ -36,7 +36,7 @@ import com.orm.SugarDb;
 
 import java.io.File;
 
-public class PreferencesActivity extends PreferenceActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
+public class SettingsActivity extends PreferenceActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
 
   @Override
   public void onCreate(Bundle savedInstanceState) {

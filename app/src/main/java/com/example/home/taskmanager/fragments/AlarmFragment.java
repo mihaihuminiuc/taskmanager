@@ -1,4 +1,4 @@
-package com.example.home.taskmanager.activity;
+package com.example.home.taskmanager.fragments;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -6,11 +6,13 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.view.Window;
+import android.view.ViewGroup;
 import android.widget.CalendarView;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -19,6 +21,7 @@ import android.widget.TextView;
 
 import com.example.home.taskmanager.R;
 import com.example.home.taskmanager.TaskManager;
+import com.example.home.taskmanager.activity.AddAlarmActivity;
 import com.example.home.taskmanager.listadapter.AlarmViewAdapter;
 import com.example.home.taskmanager.model.AlarmModel;
 import com.example.home.taskmanager.service.AlarmService;
@@ -32,10 +35,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-public class AlarmActivity extends AppCompatActivity implements View.OnClickListener, CalendarView.OnDateChangeListener{
+public class AlarmFragment extends Fragment implements View.OnClickListener, CalendarView.OnDateChangeListener{
 
     private TextView mRangeText;
-    private ImageButton mSettingButton, mAddAlarmButton, mLeftButton, mRightButton;
+    private ImageButton mLeftButton, mRightButton;
 
     private LinearLayout alarmLayout;
 
@@ -58,18 +61,26 @@ public class AlarmActivity extends AppCompatActivity implements View.OnClickList
     private CountDownTimer countDownTimer;
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        setContentView(R.layout.alarm_activity);
+        setHasOptionsMenu(true);
+    }
 
-        mContext = this;
+    @Override
+    public View onCreateView(LayoutInflater inflater,
+                             ViewGroup container, Bundle savedInstanceState) {
+        // Inflate layout for this fragment
+        View view = inflater.inflate(R.layout.fragment_alarm, container, false);
+
+        mContext = getContext();
 
         initVar();
 
-        initUI();
+        initUI(view);
         setupActions();
+
+        return view;
     }
 
     private void initVar(){
@@ -78,29 +89,29 @@ public class AlarmActivity extends AppCompatActivity implements View.OnClickList
         mMonthList = getResources().getStringArray(R.array.spinner3_arr);
     }
 
-    private void initUI() {
-        mRangeText = findViewById(R.id.range_tv);
-        mSettingButton = findViewById(R.id.settings_ib);
-        mAddAlarmButton = findViewById(R.id.add_alarm_ib);
-        mLeftButton = findViewById(R.id.left_ib);
-        mRightButton = findViewById(R.id.right_ib);
-        mRecycleView = findViewById(R.id.recycleview);
-        mCalendarView = findViewById(R.id.simpleCalendarView);
-        alarmLayout = findViewById(R.id.add_alarm_layout);
-        progressBar = findViewById(R.id.progress_dialog);
+    private void initUI(View view) {
+        mRangeText = view.findViewById(R.id.range_tv);
+        //mSettingButton = view.findViewById(R.id.settings_ib);
+        //mAddAlarmButton = view.findViewById(R.id.add_alarm_ib);
+        mLeftButton = view.findViewById(R.id.left_ib);
+        mRightButton = view.findViewById(R.id.right_ib);
+        mRecycleView = view.findViewById(R.id.recycleview);
+        mCalendarView = view.findViewById(R.id.simpleCalendarView);
+        alarmLayout = view.findViewById(R.id.add_alarm_layout);
+        progressBar = view.findViewById(R.id.progress_dialog);
     }
 
     private void setupActions(){
-        mSettingButton.setOnClickListener(this);
-        mAddAlarmButton.setOnClickListener(this);
+        //mSettingButton.setOnClickListener(this);
+        //mAddAlarmButton.setOnClickListener(this);
         mLeftButton.setOnClickListener(this);
         mRightButton.setOnClickListener(this);
         mCalendarView.setOnDateChangeListener(this);
 
-        mRecycleView.addOnItemTouchListener(new RecyclerItemClickListener(this, mRecycleView, new RecyclerItemClickListener.OnItemClickListener() {
+        mRecycleView.addOnItemTouchListener(new RecyclerItemClickListener(mContext, mRecycleView, new RecyclerItemClickListener.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
-                Intent intent = new Intent(getApplicationContext(),AddAlarmActivity.class);
+                Intent intent = new Intent(getContext(),AddAlarmActivity.class);
                 intent.putExtra(CommonUtils.ALARM_MODEL_ID,alarms.get(position).getId());
                 startActivity(intent);
             }
@@ -122,7 +133,7 @@ public class AlarmActivity extends AppCompatActivity implements View.OnClickList
 
         alarmViewAdapter = new AlarmViewAdapter(alarms,mContext);
 
-        LinearLayoutManager llm = new LinearLayoutManager(this);
+        LinearLayoutManager llm = new LinearLayoutManager(mContext);
         llm.setOrientation(LinearLayoutManager.VERTICAL);
         mRecycleView.setLayoutManager(llm);
 
@@ -173,76 +184,18 @@ public class AlarmActivity extends AppCompatActivity implements View.OnClickList
         return "";
     }
 
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.settings_ib:
-                startActivity(new Intent(this, SettingsActivity.class));
-                break;
-            case R.id.add_alarm_ib:
-                startActivity(new Intent(this, AddAlarmActivity.class));
-                break;
-            case R.id.left_ib:
-                setupCalendarView(-1);
-                mRangeText.setText(getRangeStr());
-
-                long beginTime = CommonUtils.atStartOfDay(mCalendar.getTime()).getTime();
-                long endTime = CommonUtils.atEndOfDay(mCalendar.getTime()).getTime();
-                populateList(beginTime,endTime);
-                break;
-            case R.id.right_ib:
-                setupCalendarView(+1);
-                mRangeText.setText(getRangeStr());
-
-                beginTime = CommonUtils.atStartOfDay(mCalendar.getTime()).getTime();
-                endTime = CommonUtils.atEndOfDay(mCalendar.getTime()).getTime();
-                populateList(beginTime,endTime);
-                break;
-        }
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putLong(getString(R.string.var_bundle_calendar), mCalendar.getTimeInMillis());
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle state) {
-        super.onRestoreInstanceState(state);
-        mCalendar.setTimeInMillis(state.getLong(getString(R.string.var_bundle_calendar)));
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        long beginTime = CommonUtils.atStartOfDay(mCalendar.getTime()).getTime();
-        long endTime = CommonUtils.atEndOfDay(mCalendar.getTime()).getTime();
-        populateList(beginTime,endTime);
-        mRangeText.setText(getRangeStr());
-    }
-
-    @Override
-    public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
-        mCalendar.set(year,month,dayOfMonth);
-        long beginTime = CommonUtils.atStartOfDay(mCalendar.getTime()).getTime();
-        long endTime = CommonUtils.atEndOfDay(mCalendar.getTime()).getTime();
-
-        populateList(beginTime,endTime);
-    }
-
     private void showDialog(final AlarmModel alarmModel){
-        AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+        AlertDialog alertDialog = new AlertDialog.Builder(mContext).create();
         alertDialog.setTitle("Alarm");
         alertDialog.setMessage("Delete alarm?");
         alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Yes",
                 new DialogInterface.OnClickListener() {
                     public void onClick(final DialogInterface dialog, int which) {
 
-                        Intent service = new Intent(getApplicationContext(), AlarmService.class);
+                        Intent service = new Intent(mContext, AlarmService.class);
                         service.putExtra(CommonUtils.ALARM_MODEL_ID, alarmModel.getId());
                         service.setAction(AlarmService.CANCEL);
-                        startService(service);
+                        mContext.startService(service);
 
                         countDownTimer = new CountDownTimer(5000,1000) {
                             @Override
@@ -275,6 +228,35 @@ public class AlarmActivity extends AppCompatActivity implements View.OnClickList
                 });
         alertDialog.show();
     }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.left_ib:
+                setupCalendarView(-1);
+                mRangeText.setText(getRangeStr());
+
+                long beginTime = CommonUtils.atStartOfDay(mCalendar.getTime()).getTime();
+                long endTime = CommonUtils.atEndOfDay(mCalendar.getTime()).getTime();
+                populateList(beginTime,endTime);
+                break;
+            case R.id.right_ib:
+                setupCalendarView(+1);
+                mRangeText.setText(getRangeStr());
+
+                beginTime = CommonUtils.atStartOfDay(mCalendar.getTime()).getTime();
+                endTime = CommonUtils.atEndOfDay(mCalendar.getTime()).getTime();
+                populateList(beginTime,endTime);
+                break;
+        }
+    }
+
+    @Override
+    public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
+        mCalendar.set(year,month,dayOfMonth);
+        long beginTime = CommonUtils.atStartOfDay(mCalendar.getTime()).getTime();
+        long endTime = CommonUtils.atEndOfDay(mCalendar.getTime()).getTime();
+
+        populateList(beginTime,endTime);
+    }
 }
-
-

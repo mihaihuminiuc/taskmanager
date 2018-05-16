@@ -22,7 +22,7 @@
         <meta-data android:name="DOMAIN_PACKAGE_NAME" android:value="com.example.home.taskmanager.model" />
 
         <activity
-            android:name=".activity.AlarmActivity"
+            android:name=".activity.MainActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -31,7 +31,7 @@
         </activity>
 
         <activity android:name=".activity.AddAlarmActivity" android:windowSoftInputMode="stateHidden"/>
-        <activity android:name=".activity.PreferencesActivity"/>
+        <activity android:name=".activity.SettingsActivity"/>
 
         <receiver android:name=".setter.AlarmSetter">
             <intent-filter>
