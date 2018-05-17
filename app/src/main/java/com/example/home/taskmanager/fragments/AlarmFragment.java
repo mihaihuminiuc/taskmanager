@@ -22,6 +22,7 @@ import android.widget.TextView;
 import com.example.home.taskmanager.R;
 import com.example.home.taskmanager.TaskManager;
 import com.example.home.taskmanager.listadapter.AlarmViewAdapter;
+import com.example.home.taskmanager.listeners.AddAlarmListener;
 import com.example.home.taskmanager.listeners.AlarmClickListener;
 import com.example.home.taskmanager.model.AlarmModel;
 import com.example.home.taskmanager.service.AlarmService;
@@ -96,6 +97,8 @@ public class AlarmFragment extends Fragment implements View.OnClickListener, Cal
 
     private void initUI(View view) {
         mRangeText = view.findViewById(R.id.range_tv);
+        //mSettingButton = view.findViewById(R.id.settings_ib);
+        //mAddAlarmButton = view.findViewById(R.id.add_alarm_ib);
         mLeftButton = view.findViewById(R.id.left_ib);
         mRightButton = view.findViewById(R.id.right_ib);
         mRecycleView = view.findViewById(R.id.recycleview);
@@ -105,6 +108,8 @@ public class AlarmFragment extends Fragment implements View.OnClickListener, Cal
     }
 
     private void setupActions(){
+        //mSettingButton.setOnClickListener(this);
+        //mAddAlarmButton.setOnClickListener(this);
         mLeftButton.setOnClickListener(this);
         mRightButton.setOnClickListener(this);
         mCalendarView.setOnDateChangeListener(this);
