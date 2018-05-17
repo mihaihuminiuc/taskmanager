@@ -30,9 +30,6 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".activity.AddAlarmActivity" android:windowSoftInputMode="stateHidden"/>
-        <activity android:name=".activity.SettingsActivity"/>
-
         <receiver android:name=".setter.AlarmSetter">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />

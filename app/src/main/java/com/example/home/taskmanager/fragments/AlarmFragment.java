@@ -21,8 +21,8 @@ import android.widget.TextView;
 
 import com.example.home.taskmanager.R;
 import com.example.home.taskmanager.TaskManager;
-import com.example.home.taskmanager.activity.AddAlarmActivity;
 import com.example.home.taskmanager.listadapter.AlarmViewAdapter;
+import com.example.home.taskmanager.listeners.AlarmClickListener;
 import com.example.home.taskmanager.model.AlarmModel;
 import com.example.home.taskmanager.service.AlarmService;
 import com.example.home.taskmanager.util.CommonUtils;
@@ -60,6 +60,8 @@ public class AlarmFragment extends Fragment implements View.OnClickListener, Cal
 
     private CountDownTimer countDownTimer;
 
+    private AlarmClickListener mAlarmClickListener;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,6 +82,9 @@ public class AlarmFragment extends Fragment implements View.OnClickListener, Cal
         initUI(view);
         setupActions();
 
+        populateList(CommonUtils.atStartOfDay(mCalendar.getTime()).getTime()
+                ,CommonUtils.atEndOfDay(mCalendar.getTime()).getTime());
+
         return view;
     }
 
@@ -91,8 +96,6 @@ public class AlarmFragment extends Fragment implements View.OnClickListener, Cal
 
     private void initUI(View view) {
         mRangeText = view.findViewById(R.id.range_tv);
-        //mSettingButton = view.findViewById(R.id.settings_ib);
-        //mAddAlarmButton = view.findViewById(R.id.add_alarm_ib);
         mLeftButton = view.findViewById(R.id.left_ib);
         mRightButton = view.findViewById(R.id.right_ib);
         mRecycleView = view.findViewById(R.id.recycleview);
@@ -102,8 +105,6 @@ public class AlarmFragment extends Fragment implements View.OnClickListener, Cal
     }
 
     private void setupActions(){
-        //mSettingButton.setOnClickListener(this);
-        //mAddAlarmButton.setOnClickListener(this);
         mLeftButton.setOnClickListener(this);
         mRightButton.setOnClickListener(this);
         mCalendarView.setOnDateChangeListener(this);
@@ -111,9 +112,7 @@ public class AlarmFragment extends Fragment implements View.OnClickListener, Cal
         mRecycleView.addOnItemTouchListener(new RecyclerItemClickListener(mContext, mRecycleView, new RecyclerItemClickListener.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
-                Intent intent = new Intent(getContext(),AddAlarmActivity.class);
-                intent.putExtra(CommonUtils.ALARM_MODEL_ID,alarms.get(position).getId());
-                startActivity(intent);
+                mAlarmClickListener.onItemClick(alarms.get(position).getId());
             }
 
             @Override
@@ -258,5 +257,23 @@ public class AlarmFragment extends Fragment implements View.OnClickListener, Cal
         long endTime = CommonUtils.atEndOfDay(mCalendar.getTime()).getTime();
 
         populateList(beginTime,endTime);
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+
+        if (context instanceof AlarmClickListener) {
+            mAlarmClickListener = (AlarmClickListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement AlarmClickListener");
+        }
+    }
+
+    @Override
+    public void onDetach(){
+        super.onDetach();
+        mAlarmClickListener = null;
     }
 }

@@ -20,7 +20,7 @@ import android.widget.Toast;
 
 import com.example.home.taskmanager.R;
 import com.example.home.taskmanager.TaskManager;
-import com.example.home.taskmanager.activity.AddAlarmActivity;
+import com.example.home.taskmanager.listeners.AddAlarmListener;
 import com.example.home.taskmanager.model.AlarmModel;
 import com.example.home.taskmanager.service.AlarmService;
 import com.example.home.taskmanager.util.CommonUtils;
@@ -40,11 +40,11 @@ public class AddAlarmFragment extends Fragment implements View.OnClickListener{
     private TimePickerDialog mTimePicker;
     private DatePickerDialog mDatePicker;
 
-    private static final SimpleDateFormat sdf = new SimpleDateFormat();
-
     private AlarmModel alarmModel;
 
     private Context mContext;
+
+    private AddAlarmListener mAddAlarmListener;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -52,14 +52,14 @@ public class AddAlarmFragment extends Fragment implements View.OnClickListener{
 
         setHasOptionsMenu(true);
 
-        Bundle extras = getActivity().getIntent().getExtras();
         long longId;
 
-        if (extras != null) {
-            longId = extras.getLong(CommonUtils.ALARM_MODEL_ID);
-            // and get whatever type user account id is
-            alarmModel = AlarmModel.findById(AlarmModel.class,longId);
-        }
+        if(getArguments()!=null)
+            if (getArguments().getLong(CommonUtils.ALARM_MODEL_ID) != 0) {
+                longId = getArguments().getLong(CommonUtils.ALARM_MODEL_ID);
+                // and get whatever type user account id is
+                alarmModel = AlarmModel.findById(AlarmModel.class,longId);
+            }
 
         mContext=getContext();
     }
@@ -185,5 +185,25 @@ public class AddAlarmFragment extends Fragment implements View.OnClickListener{
         service.putExtra(CommonUtils.ALARM_MODEL_ID, alarmModel.getId());
         service.setAction(AlarmService.POPULATE);
         mContext.startService(service);
+
+        mAddAlarmListener.onCreateAlarm();
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+
+        if (context instanceof AddAlarmListener) {
+            mAddAlarmListener = (AddAlarmListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement AddAlarmListener");
+        }
+    }
+
+    @Override
+    public void onDetach(){
+        super.onDetach();
+        mAddAlarmListener = null;
     }
 }

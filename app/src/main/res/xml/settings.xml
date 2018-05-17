@@ -9,7 +9,7 @@
             android:summary="Vibrate on notification"
             android:defaultValue="true" />
 
-        <RingtonePreference
+        <Preference
             android:key="ringtone_pref"
             android:title="Set Ringtone"
             android:summary="Default"

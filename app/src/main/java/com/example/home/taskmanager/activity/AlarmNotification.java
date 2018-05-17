@@ -35,12 +35,10 @@ import java.util.concurrent.Future;
 
 public class AlarmNotification extends Activity implements View.OnClickListener{
 
-    private Uri mRingtoneUri;
     private Vibrator mVibrator;
     private final long[] mVibratePattern = { 0, 500, 500 };
     private boolean mVibrate;
     private boolean mSound;
-    private Timer mTimer = null;
     private TextView mTextView;
     private Button mDismissButton;
     private Ringtone mRingtone;
@@ -113,7 +111,7 @@ public class AlarmNotification extends Activity implements View.OnClickListener{
 
     private void showNotification(){
 
-        Intent intent = new Intent(mContext, AlarmActivity.class);
+        Intent intent = new Intent(mContext, MainActivity.class);
 
         PendingIntent pi = PendingIntent.getActivity(mContext,
                 0 /* Request code */,

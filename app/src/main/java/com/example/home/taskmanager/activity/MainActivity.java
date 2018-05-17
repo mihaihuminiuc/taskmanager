@@ -1,6 +1,7 @@
 package com.example.home.taskmanager.activity;
 
 import android.content.res.Configuration;
+import android.location.Address;
 import android.os.Bundle;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.Nullable;
@@ -15,8 +16,12 @@ import com.example.home.taskmanager.R;
 import com.example.home.taskmanager.fragments.AddAlarmFragment;
 import com.example.home.taskmanager.fragments.AlarmFragment;
 import com.example.home.taskmanager.fragments.SettingsFragment;
+import com.example.home.taskmanager.listeners.AddAlarmListener;
+import com.example.home.taskmanager.listeners.AlarmClickListener;
+import com.example.home.taskmanager.model.AlarmModel;
+import com.example.home.taskmanager.util.CommonUtils;
 
-public class MainActivity extends BaseActivity{
+public class MainActivity extends BaseActivity implements AddAlarmListener, AlarmClickListener {
 
     private DrawerLayout mDrawerLayout;
     private NavigationView mNavDrawer;
@@ -104,13 +109,13 @@ public class MainActivity extends BaseActivity{
         closeNavigationDrawer();
         switch(menuItem.getItemId()) {
             case R.id.menu_alarm_list:
-                loadFragment(AlarmFragment.class, getResources().getString(R.string.alarm_list_title));
+                loadFragment(AlarmFragment.class, getResources().getString(R.string.alarm_list_title),null);
                 break;
             case R.id.menu_add_alarm:
-                loadFragment(AddAlarmFragment.class, getResources().getString(R.string.add_alarm_title));
+                loadFragment(AddAlarmFragment.class, getResources().getString(R.string.add_alarm_title),null);
                 break;
             case R.id.menu_settings:
-                loadFragment(SettingsFragment.class, getResources().getString(R.string.setting_title));
+                loadFragment(SettingsFragment.class, getResources().getString(R.string.setting_title),null);
                 break;
         }
     }
@@ -127,13 +132,16 @@ public class MainActivity extends BaseActivity{
         closeNavigationDrawer();
     }
 
-    private void loadFragment(Class fragmentClass, CharSequence toolbarTitle) {
+    private void loadFragment(Class fragmentClass, CharSequence toolbarTitle, Bundle bundle) {
         Fragment fragment = null;
         try {
             fragment = (Fragment) fragmentClass.newInstance();
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        if(bundle!=null)
+            fragment.setArguments(bundle);
 
         insertFragment(fragment);
 
@@ -142,6 +150,21 @@ public class MainActivity extends BaseActivity{
     }
 
     private void loadAlarmFragment() {
-        loadFragment(AlarmFragment.class, getResources().getString(R.string.alarm_list_title));
+        loadFragment(AlarmFragment.class, getResources().getString(R.string.alarm_list_title),null);
+    }
+
+    @Override
+    public void onCreateAlarm() {
+        loadFragment(AlarmFragment.class, getResources().getString(R.string.alarm_list_title),null);
+    }
+
+    @Override
+    public void onItemClick(long alarmId) {
+
+        Bundle bundle = new Bundle();
+
+        bundle.putLong(CommonUtils.ALARM_MODEL_ID,alarmId);
+
+        loadFragment(AddAlarmFragment.class, getResources().getString(R.string.add_alarm_title),bundle);
     }
 }
